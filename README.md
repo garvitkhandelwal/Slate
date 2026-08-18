@@ -2,7 +2,7 @@
 
 Slate is a private, distraction-free weekly planner for iPhone. It opens directly to the current week, captures tasks inline, stores everything on-device, and automatically removes plans older than 30 days.
 
-This repository is in its product and architecture phase. No application target has been scaffolded yet.
+The product and architecture specification is approved, and the detailed implementation plan is ready. No application target has been scaffolded yet.
 
 ## Product constraints
 
@@ -19,6 +19,7 @@ This repository is in its product and architecture phase. No application target 
 - [`DESIGN.md`](DESIGN.md) — visual system and interaction guardrails
 - [`docs/app-store/APP_STORE_METADATA.md`](docs/app-store/APP_STORE_METADATA.md) — confirmed identity plus clearly marked store-copy drafts
 - [`docs/superpowers/specs/2026-08-19-slate-ios-app-design.md`](docs/superpowers/specs/2026-08-19-slate-ios-app-design.md) — end-to-end product and architecture specification
+- [`docs/superpowers/plans/2026-08-19-slate-ios-app.md`](docs/superpowers/plans/2026-08-19-slate-ios-app.md) — test-driven, task-by-task implementation plan
 - [`Brand/SlateIcon`](Brand/SlateIcon) — canonical wordmark icon source and 1024px masters
 
 ## Source evidence
@@ -27,4 +28,4 @@ The product record and specification were derived from the supplied PRD, interac
 
 ## Development status
 
-The next approved step is to generate the task-by-task implementation plan, then scaffold the Xcode project from that plan.
+The next step is to choose an execution mode, then scaffold and implement the Xcode project task by task from the approved plan.
