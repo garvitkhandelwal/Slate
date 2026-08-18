@@ -1,0 +1,282 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "add": {
+      "comment": "Inline affordance that begins task capture; lowercase by design.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ add"
+          }
+        }
+      }
+    },
+    "choose_photo": {
+      "comment": "Dialog action that opens the system photo picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose photo…"
+          }
+        }
+      }
+    },
+    "collapsed": {
+      "comment": "VoiceOver value of the week range control while the picker is closed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
+          }
+        }
+      }
+    },
+    "complete": {
+      "comment": "VoiceOver action name for an incomplete task.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete"
+          }
+        }
+      }
+    },
+    "completed": {
+      "comment": "VoiceOver value of a completed task.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        }
+      }
+    },
+    "delete": {
+      "comment": "Swipe action and VoiceOver action that removes a task immediately.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "edit": {
+      "comment": "VoiceOver action name in the day view.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        }
+      }
+    },
+    "edit_hint": {
+      "comment": "VoiceOver hint on a task row in the day view.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to edit"
+          }
+        }
+      }
+    },
+    "error_persistence": {
+      "comment": "Alert shown when a task change could not be saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slate couldn’t save that change. Try again."
+          }
+        }
+      }
+    },
+    "error_unavailable_store": {
+      "comment": "Shown in place of the planner when the local store cannot open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slate couldn’t open your plans. Close and reopen the app."
+          }
+        }
+      }
+    },
+    "error_wallpaper_import": {
+      "comment": "Alert shown when a chosen photo could not be used.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slate couldn’t use that photo. Choose another image."
+          }
+        }
+      }
+    },
+    "error_wallpaper_storage": {
+      "comment": "Alert shown when the wallpaper could not be removed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slate couldn’t remove the wallpaper. Try again."
+          }
+        }
+      }
+    },
+    "expanded": {
+      "comment": "VoiceOver value of the week range control while the picker is open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        }
+      }
+    },
+    "mark_incomplete": {
+      "comment": "VoiceOver action name for a completed task.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark incomplete"
+          }
+        }
+      }
+    },
+    "new_task": {
+      "comment": "Accessibility label of the inline capture field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New task"
+          }
+        }
+      }
+    },
+    "not_completed": {
+      "comment": "VoiceOver value of an incomplete task.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not completed"
+          }
+        }
+      }
+    },
+    "ok": {
+      "comment": "Dismisses the single planner alert.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "remove_wallpaper": {
+      "comment": "Dialog action that deletes the stored wallpaper.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove wallpaper"
+          }
+        }
+      }
+    },
+    "this_week": {
+      "comment": "Suffix on the current week in the week picker.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this week"
+          }
+        }
+      }
+    },
+    "today": {
+      "comment": "Spoken suffix appended to today's date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "wallpaper_options": {
+      "comment": "Title of the wallpaper dialog and the VoiceOver custom action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wallpaper options"
+          }
+        }
+      }
+    },
+    "week": {
+      "comment": "Navigation title of the weekly root; appears in the day view back button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week"
+          }
+        }
+      }
+    },
+    "week_range": {
+      "comment": "VoiceOver hint on the week range control.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week range"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

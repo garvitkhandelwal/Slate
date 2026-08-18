@@ -1,5 +1,6 @@
 #if DEBUG
 import Foundation
+import SwiftUI
 import UIKit
 
 /// DEBUG-only launch-argument switches for UI tests: an isolated store, optional reset, and named seeds.
@@ -9,6 +10,15 @@ enum UITestBootstrap {
     static var resetsStore: Bool { ProcessInfo.processInfo.arguments.contains("-reset-ui-store") }
     static var seedsExpiredTask: Bool { ProcessInfo.processInfo.arguments.contains("-seed-expired-task") }
     static var seedsWallpaper: Bool { ProcessInfo.processInfo.arguments.contains("-seed-wallpaper") }
+
+    /// `-ui-appearance dark|light` forces an appearance for independent light/dark launches.
+    static var forcedColorScheme: ColorScheme? {
+        switch UserDefaults.standard.string(forKey: "ui-appearance") {
+        case "dark": .dark
+        case "light": .light
+        default: nil
+        }
+    }
 
     /// The retention day key lives beside the store so a reset launch behaves like a first launch.
     static let defaultsSuite = "com.garvit.Slate.uitests"
