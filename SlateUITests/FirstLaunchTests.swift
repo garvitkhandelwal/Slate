@@ -69,14 +69,14 @@ extension XCUIApplication {
     func reveal(_ element: XCUIElement, maxSwipes: Int = 8) -> Bool {
         if element.waitForExistence(timeout: 1), element.isHittable { return true }
         for _ in 0..<maxSwipes {
-            swipeUp(velocity: .slow)
-            if element.exists, element.isHittable { return true }
+            swipeUp()
+            if element.waitForExistence(timeout: 0.5), element.isHittable { return true }
         }
         for _ in 0..<maxSwipes {
-            swipeDown(velocity: .slow)
-            if element.exists, element.isHittable { return true }
+            swipeDown()
+            if element.waitForExistence(timeout: 0.5), element.isHittable { return true }
         }
-        return element.exists
+        return element.exists && element.isHittable
     }
 
     /// The combined accessibility element for a task row, found by its visible text.

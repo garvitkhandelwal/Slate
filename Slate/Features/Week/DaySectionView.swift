@@ -20,23 +20,28 @@ struct DaySectionView: View {
     let onDismiss: () -> Void
     var onTapGround: (() -> Void)? = nil
     var onLongPressGround: (() -> Void)? = nil
+    var isWeekSwipeEnabled = false
+    var onWeekSwipe: (WeekSwipeDecision) -> Void = { _ in }
 
     var body: some View {
         HStack(spacing: 0) {
-            Button(action: onOpen) {
-                Text(dayLabel)
-                    .font(SlateTypography.dayLabel.weight(isToday ? .semibold : .regular))
-                    .foregroundStyle(isToday ? SlateColors.ink : SlateColors.secondary)
-                    .frame(minHeight: SlateSpacing.minimumTarget)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(accessibilityDayLabel)
-            .accessibilityIdentifier("day-label-\(day.year)-\(day.month)-\(day.day)")
-            .accessibilityAddTraits(.isHeader)
+            // A tap-gesture label rather than a Button so the list row does not swallow the empty ground beside it.
+            Text(dayLabel)
+                .font(SlateTypography.dayLabel.weight(isToday ? .semibold : .regular))
+                .foregroundStyle(isToday ? SlateColors.ink : SlateColors.secondary)
+                .frame(minHeight: SlateSpacing.minimumTarget)
+                .layoutPriority(1)
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onOpen)
+                .accessibilityElement()
+                .accessibilityLabel(accessibilityDayLabel)
+                .accessibilityAddTraits([.isButton, .isHeader])
+                .accessibilityAction(.default, onOpen)
+                .accessibilityIdentifier("day-label-\(day.year)-\(day.month)-\(day.day)")
             EmptyGround(onTap: onTapGround, onLongPress: onLongPressGround)
         }
         .padding(.top, SlateSpacing.section - SlateSpacing.compact)
+        .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: onWeekSwipe)
         .slateRow()
 
         ForEach(tasks) { task in
@@ -60,18 +65,22 @@ struct DaySectionView: View {
                     focus: focus
                 )
             } else {
-                Button(action: onAdd) {
-                    Text(AccessibilityLabels.add)
-                        .font(SlateTypography.body)
-                        .foregroundStyle(SlateColors.placeholder)
-                        .frame(minHeight: SlateSpacing.minimumTarget)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("add-\(day.year)-\(day.month)-\(day.day)")
+                Text(AccessibilityLabels.add)
+                    .font(SlateTypography.body)
+                    .foregroundStyle(SlateColors.placeholder)
+                    .frame(minHeight: SlateSpacing.minimumTarget)
+                    .layoutPriority(1)
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: onAdd)
+                    .accessibilityElement()
+                    .accessibilityLabel(AccessibilityLabels.add)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction(.default, onAdd)
+                    .accessibilityIdentifier("add-\(day.year)-\(day.month)-\(day.day)")
                 EmptyGround(onTap: onTapGround, onLongPress: onLongPressGround)
             }
         }
+        .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: onWeekSwipe)
         .slateRow()
     }
 }

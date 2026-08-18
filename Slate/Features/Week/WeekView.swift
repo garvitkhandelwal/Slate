@@ -1,19 +1,52 @@
 import SwiftUI
 
-/// The root planning surface: week range, seven day sections, and empty ground, on the wallpaper layer.
-/// It owns only ephemeral focus state and forwards every intent to the shared view model.
+/// The root planning surface: week range with its inline picker, then seven day sections and empty
+/// ground on the wallpaper layer. It owns only ephemeral focus, gesture, and animation state and
+/// forwards every intent to the shared view model.
 struct WeekView: View {
     @Bindable var model: PlannerViewModel
     @FocusState private var focus: CaptureTarget?
     /// Return resigns focus before rapid entry continues; ignore that transient loss.
     @State private var isSubmitting = false
+    @State private var travel: SlateMotion.WeekTravel = .forward
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var draftBinding: Binding<String> {
         Binding(get: { model.capture.draft }, set: { model.updateDraft($0) })
     }
 
+    /// Vertical scrolling, task swipes, text selection, and active capture take precedence.
+    private var isWeekSwipeEnabled: Bool {
+        !model.capture.isActive && !model.isWeekPickerExpanded && focus == nil
+    }
+
     var body: some View {
-        List {
+        VStack(spacing: 0) {
+            header
+            ZStack {
+                weekList
+                    .id(model.displayedWeek.start)
+                    .transition(SlateMotion.weekTransition(travel: travel, reduceMotion: reduceMotion))
+            }
+        }
+        .background(SlateColors.ground.ignoresSafeArea())
+        .navigationTitle(AccessibilityLabels.week)
+        .toolbar(.hidden, for: .navigationBar)
+        .onChange(of: model.capture.target) { _, target in
+            syncFocus(to: target)
+        }
+        .onChange(of: focus) { previous, current in
+            // Losing focus by an outside tap or keyboard dismissal commits a valid draft, then exits.
+            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
+                model.dismissCapture(committing: true)
+            }
+        }
+    }
+
+    // MARK: Header
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 0) {
             WeekRangeButton(
                 text: model.calendarService.weekRangeText(model.displayedWeek),
                 accessibilityText: AccessibilityLabels.weekRange(
@@ -22,12 +55,39 @@ struct WeekView: View {
                     isCurrentWeek: model.displayedWeek == model.currentWeek
                 ),
                 isExpanded: model.isWeekPickerExpanded,
-                action: { model.isWeekPickerExpanded.toggle() },
+                action: togglePicker,
                 onTapGround: endCapture
             )
             .padding(.top, SlateSpacing.compact)
-            .slateRow()
+            .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: handleSwipe)
 
+            if model.isWeekPickerExpanded {
+                WeekPickerView(
+                    weeks: model.pickerWeeks,
+                    selected: model.displayedWeek,
+                    label: pickerLabel,
+                    accessibilityLabel: { week in
+                        AccessibilityLabels.weekRange(week, calendarService: model.calendarService, isCurrentWeek: week == model.currentWeek)
+                    },
+                    onSelect: select
+                )
+                .transition(.opacity)
+            }
+        }
+        .padding(.horizontal, SlateSpacing.contentEdge)
+        // Empty ground is vertically greedy; the header only ever takes its ideal height.
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func pickerLabel(_ week: WeekInterval) -> String {
+        let range = model.calendarService.weekRangeText(week)
+        return week == model.currentWeek ? range + "  ·  " + AccessibilityLabels.thisWeek : range
+    }
+
+    // MARK: Week content
+
+    private var weekList: some View {
+        List {
             ForEach(model.displayedWeek.days, id: \.self) { day in
                 DaySectionView(
                     day: day,
@@ -44,7 +104,9 @@ struct WeekView: View {
                     onDelete: { model.deleteTask($0) },
                     onSubmit: submitAndKeepFocus,
                     onDismiss: { model.dismissCapture(committing: false) },
-                    onTapGround: endCapture
+                    onTapGround: endCapture,
+                    isWeekSwipeEnabled: isWeekSwipeEnabled,
+                    onWeekSwipe: handleSwipe
                 )
             }
 
@@ -53,26 +115,46 @@ struct WeekView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+                .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: handleSwipe)
         }
         .listStyle(.plain)
         .listRowSpacing(0)
         .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .background(SlateColors.ground.ignoresSafeArea())
-        .navigationTitle(AccessibilityLabels.week)
-        .toolbar(.hidden, for: .navigationBar)
         .accessibilityIdentifier("planner-root")
-        .onChange(of: model.capture.target) { _, target in
-            syncFocus(to: target)
-        }
-        .onChange(of: focus) { previous, current in
-            // Losing focus by an outside tap or keyboard dismissal commits a valid draft, then exits.
-            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
-                model.dismissCapture(committing: true)
-            }
+    }
+
+    // MARK: Navigation
+
+    private func togglePicker() {
+        endCapture()
+        withAnimation(SlateMotion.animation(reduceMotion: reduceMotion)) {
+            model.isWeekPickerExpanded.toggle()
         }
     }
+
+    private func select(_ week: WeekInterval) {
+        travel = week.start < model.displayedWeek.start ? .backward : .forward
+        withAnimation(SlateMotion.animation(reduceMotion: reduceMotion)) {
+            model.selectWeek(containing: week.start)
+        }
+    }
+
+    private func handleSwipe(_ decision: WeekSwipeDecision) {
+        switch decision {
+        case .next:
+            travel = .forward
+            withAnimation(SlateMotion.animation(reduceMotion: reduceMotion)) { model.showNextWeek() }
+        case .previous:
+            travel = .backward
+            withAnimation(SlateMotion.animation(reduceMotion: reduceMotion)) { model.showPreviousWeek() }
+        case .none:
+            break
+        }
+    }
+
+    // MARK: Capture focus
 
     /// Return commits the draft; a session that stays active (rapid entry or a failed commit) keeps focus.
     private func submitAndKeepFocus() {

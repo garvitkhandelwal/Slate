@@ -56,15 +56,18 @@ struct DayView: View {
                         focus: $focus
                     )
                 } else {
-                    Button(action: { model.beginAdding(on: day) }) {
-                        Text(AccessibilityLabels.add)
-                            .font(SlateTypography.body)
-                            .foregroundStyle(SlateColors.placeholder)
-                            .frame(minHeight: SlateSpacing.minimumTarget)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("add-\(day.year)-\(day.month)-\(day.day)")
+                    Text(AccessibilityLabels.add)
+                        .font(SlateTypography.body)
+                        .foregroundStyle(SlateColors.placeholder)
+                        .frame(minHeight: SlateSpacing.minimumTarget)
+                        .layoutPriority(1)
+                        .contentShape(Rectangle())
+                        .onTapGesture { model.beginAdding(on: day) }
+                        .accessibilityElement()
+                        .accessibilityLabel(AccessibilityLabels.add)
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityAction { model.beginAdding(on: day) }
+                        .accessibilityIdentifier("add-\(day.year)-\(day.month)-\(day.day)")
                     EmptyGround(onTap: endCapture)
                 }
             }
@@ -111,6 +114,7 @@ struct DayView: View {
                     .textCase(.uppercase)
                     .foregroundStyle(SlateColors.secondary)
             }
+            .layoutPriority(1)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(AccessibilityLabels.day(day, calendarService: model.calendarService, isToday: model.isToday(day)))
             .accessibilityAddTraits(.isHeader)
