@@ -1,5 +1,7 @@
 import Foundation
 import Observation
+import PhotosUI
+import SwiftUI
 import UIKit
 
 /// The single owner of mutable UI state shared by the weekly and daily surfaces.
@@ -193,6 +195,36 @@ final class PlannerViewModel {
     }
 
     // MARK: Wallpaper
+
+    /// Loads the selection through the picker bridge, persists the processed copy, then reloads and decodes
+    /// the sandboxed file so visible state always represents persisted data.
+    func importWallpaper(_ item: PhotosPickerItem) async {
+        do {
+            let data = try await WallpaperPickerBridge().data(from: item)
+            await importWallpaper(data: data)
+        } catch {
+            presentedError = error as? PlannerError ?? .wallpaperImport
+        }
+    }
+
+    func importWallpaper(data: Data) async {
+        do {
+            try await environment.wallpaperStore.saveImportedImage(data)
+            await loadWallpaper()
+        } catch {
+            presentedError = error as? PlannerError ?? .wallpaperImport
+        }
+    }
+
+    /// Deletes the sandboxed file first; visible state clears only after the removal succeeds.
+    func removeWallpaper() async {
+        do {
+            try await environment.wallpaperStore.remove()
+            wallpaperImage = nil
+        } catch {
+            presentedError = error as? PlannerError ?? .wallpaperStorage
+        }
+    }
 
     private func loadWallpaper() async {
         do {

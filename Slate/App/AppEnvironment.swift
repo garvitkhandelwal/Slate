@@ -19,14 +19,16 @@ extension AppEnvironment {
         let container = try Self.container()
         let repository = SwiftDataPlannerRepository(container: container)
         let retention = RetentionService(repository: repository, calendarService: calendar, defaults: Self.defaults())
+        let wallpaperDirectory = try Self.wallpaperDirectory()
         #if DEBUG
         if UITestBootstrap.isEnabled {
             try UITestBootstrap.seed(repository: repository, calendarService: calendar, now: dateProvider.now())
+            try UITestBootstrap.seedWallpaper(in: wallpaperDirectory)
         }
         #endif
         return AppEnvironment(
             repository: repository,
-            wallpaperStore: DiskWallpaperStore(baseDirectory: try Self.wallpaperDirectory()),
+            wallpaperStore: DiskWallpaperStore(baseDirectory: wallpaperDirectory),
             retentionService: retention,
             haptics: SystemHapticClient(),
             dateProvider: dateProvider,

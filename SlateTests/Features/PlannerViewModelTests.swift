@@ -347,6 +347,61 @@ final class PlannerViewModelTests: XCTestCase {
         XCTAssertTrue(harness.haptics.events.isEmpty)
     }
 
+    // MARK: Wallpaper
+
+    func testSuccessfulImportSavesBeforeStateChanges() async throws {
+        let harness = PlannerHarness()
+        await harness.model.start()
+        XCTAssertNil(harness.model.wallpaperImage)
+        await harness.model.importWallpaper(data: try ImageFixtures.png(width: 8, height: 8))
+        let calls = await harness.wallpaperStore.calls
+        XCTAssertEqual(calls, [.load, .save, .load], "The visible image is decoded from the persisted copy after saving")
+        XCTAssertNotNil(harness.model.wallpaperImage)
+        XCTAssertNil(harness.model.presentedError)
+    }
+
+    func testFailedImportPreservesPriorImageAndRaisesImportError() async throws {
+        let harness = PlannerHarness(wallpaperData: try ImageFixtures.png(width: 8, height: 8))
+        await harness.model.start()
+        let prior = harness.model.wallpaperImage
+        XCTAssertNotNil(prior)
+        await harness.wallpaperStore.setSaveError(.wallpaperImport)
+        await harness.model.importWallpaper(data: Data("garbage".utf8))
+        XCTAssertTrue(harness.model.wallpaperImage === prior)
+        XCTAssertEqual(harness.model.presentedError, .wallpaperImport)
+    }
+
+    func testSuccessfulRemovalClearsStateAfterDiskRemoval() async throws {
+        let harness = PlannerHarness(wallpaperData: try ImageFixtures.png(width: 8, height: 8))
+        await harness.model.start()
+        XCTAssertNotNil(harness.model.wallpaperImage)
+        await harness.model.removeWallpaper()
+        XCTAssertNil(harness.model.wallpaperImage)
+        let stored = await harness.wallpaperStore.stored
+        XCTAssertNil(stored)
+        XCTAssertNil(harness.model.presentedError)
+    }
+
+    func testFailedRemovalPreservesStateAndRaisesStorageError() async throws {
+        let harness = PlannerHarness(wallpaperData: try ImageFixtures.png(width: 8, height: 8))
+        await harness.model.start()
+        await harness.wallpaperStore.setRemoveError(.wallpaperStorage)
+        await harness.model.removeWallpaper()
+        XCTAssertNotNil(harness.model.wallpaperImage)
+        XCTAssertEqual(harness.model.presentedError, .wallpaperStorage)
+    }
+
+    func testCorruptStoredDataIsRemovedSilently() async {
+        let harness = PlannerHarness(wallpaperData: Data("not an image".utf8))
+        await harness.model.start()
+        XCTAssertNil(harness.model.wallpaperImage)
+        XCTAssertNil(harness.model.presentedError, "Corrupt wallpaper never alerts")
+        let calls = await harness.wallpaperStore.calls
+        XCTAssertEqual(calls, [.load, .remove])
+        let stored = await harness.wallpaperStore.stored
+        XCTAssertNil(stored)
+    }
+
     func testDeletingTaskBeingEditedEndsCapture() async {
         let day = LocalDay(year: 2026, month: 8, day: 19)
         let task = TaskSnapshot.fixture(text: "Editing", day: day)

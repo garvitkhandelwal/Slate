@@ -29,7 +29,8 @@ struct WeekView: View {
                     .transition(SlateMotion.weekTransition(travel: travel, reduceMotion: reduceMotion))
             }
         }
-        .background(SlateColors.ground.ignoresSafeArea())
+        .background(WallpaperLayer(image: model.wallpaperImage))
+        .wallpaperActionDialog(model: model)
         .navigationTitle(AccessibilityLabels.week)
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: model.capture.target) { _, target in
@@ -56,7 +57,8 @@ struct WeekView: View {
                 ),
                 isExpanded: model.isWeekPickerExpanded,
                 action: togglePicker,
-                onTapGround: endCapture
+                onTapGround: endCapture,
+                onWallpaperOptions: presentWallpaperOptions
             )
             .padding(.top, SlateSpacing.compact)
             .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: handleSwipe)
@@ -105,12 +107,13 @@ struct WeekView: View {
                     onSubmit: submitAndKeepFocus,
                     onDismiss: { model.dismissCapture(committing: false) },
                     onTapGround: endCapture,
+                    onLongPressGround: presentWallpaperOptions,
                     isWeekSwipeEnabled: isWeekSwipeEnabled,
                     onWeekSwipe: handleSwipe
                 )
             }
 
-            EmptyGround(onTap: endCapture)
+            EmptyGround(onTap: endCapture, onLongPress: presentWallpaperOptions)
                 .frame(height: SlateSpacing.groundHeight)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
@@ -123,6 +126,14 @@ struct WeekView: View {
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
         .accessibilityIdentifier("planner-root")
+    }
+
+    // MARK: Wallpaper
+
+    /// Long-pressing genuine empty ground (or the VoiceOver custom action) opens the wallpaper options.
+    private func presentWallpaperOptions() {
+        endCapture()
+        model.isWallpaperDialogPresented = true
     }
 
     // MARK: Navigation

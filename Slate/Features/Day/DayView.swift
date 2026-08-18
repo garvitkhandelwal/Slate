@@ -84,7 +84,7 @@ struct DayView: View {
         .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .background(SlateColors.ground.ignoresSafeArea())
+        .background(WallpaperLayer(image: model.wallpaperImage))
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .accessibilityIdentifier("day-root")
