@@ -15,7 +15,7 @@ extension AppEnvironment {
     static func production() throws -> AppEnvironment {
         let calendar = CalendarService()
         let container = try ModelContainerFactory.production()
-        let repository = SwiftDataPlannerRepository(context: container.mainContext)
+        let repository = SwiftDataPlannerRepository(container: container)
         return AppEnvironment(
             repository: repository,
             wallpaperStore: NoWallpaperStore(),

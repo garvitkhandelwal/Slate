@@ -9,7 +9,7 @@ final class SwiftDataPlannerRepositoryTests: XCTestCase {
 
     override func setUpWithError() throws {
         container = try ModelContainerFactory.inMemory()
-        repository = SwiftDataPlannerRepository(context: container.mainContext)
+        repository = SwiftDataPlannerRepository(container: container)
     }
 
     override func tearDown() {
@@ -141,7 +141,7 @@ final class SwiftDataPlannerRepositoryTests: XCTestCase {
         let day = LocalDay(year: 2026, month: 8, day: 19)
         let seeded = try repository.addTask(text: "seed", on: day, createdAt: .now)
 
-        let failing = SwiftDataPlannerRepository(context: container.mainContext, save: { throw Boom() })
+        let failing = SwiftDataPlannerRepository(container: container, save: { throw Boom() })
         XCTAssertThrowsError(try failing.addTask(text: "new", on: day, createdAt: .now)) {
             XCTAssertEqual($0 as? PlannerError, .persistence(operation: .add))
         }

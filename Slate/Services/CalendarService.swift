@@ -43,25 +43,15 @@ struct CalendarService: Sendable {
 
     // MARK: Labels
 
-    /// Compact range such as `Aug 17–23` or `Aug 31–Sep 6`; the month is not repeated within one month.
+    /// Compact locale-aware range such as `Aug 17 – 23`, `17–23 Aug`, or `Aug 31 – Sep 6`; the interval
+    /// style collapses a repeated month itself.
     func weekRangeText(_ week: WeekInterval) -> String {
-        let start = localDate(for: week.start)
-        let end = localDate(for: week.end)
-        let startText = start.formatted(style.month(.abbreviated).day())
-        let endText: String
-        if calendar.isDate(start, equalTo: end, toGranularity: .month) {
-            endText = end.formatted(style.day())
-        } else {
-            endText = end.formatted(style.month(.abbreviated).day())
-        }
-        return startText + "–" + endText
+        (localDate(for: week.start)..<localDate(for: week.end)).formatted(intervalStyle.month(.abbreviated).day())
     }
 
-    /// Full range used for spoken labels, such as `August 17 – August 23, 2026`.
+    /// Full range used for spoken labels, such as `August 17 – 23, 2026`.
     func weekRangeAccessibilityText(_ week: WeekInterval) -> String {
-        let start = localDate(for: week.start).formatted(style.month(.wide).day())
-        let end = localDate(for: week.end).formatted(style.month(.wide).day().year())
-        return start + " – " + end
+        (localDate(for: week.start)..<localDate(for: week.end)).formatted(intervalStyle.month(.wide).day().year())
     }
 
     /// Weekly day label such as `Mon 17`.
@@ -86,5 +76,9 @@ struct CalendarService: Sendable {
 
     private var style: Date.FormatStyle {
         Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
+    }
+
+    private var intervalStyle: Date.IntervalFormatStyle {
+        Date.IntervalFormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
     }
 }

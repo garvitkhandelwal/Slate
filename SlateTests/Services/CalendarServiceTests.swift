@@ -44,17 +44,37 @@ final class CalendarServiceTests: XCTestCase {
         XCTAssertEqual(service.addingDays(-30, to: LocalDay(year: 2026, month: 7, day: 18)), LocalDay(year: 2026, month: 6, day: 18))
     }
 
+    /// ICU separates interval halves with an en dash and thin spaces; compare on a normalized form.
+    private func normalized(_ text: String) -> String {
+        text.replacingOccurrences(of: "\u{2009}", with: " ")
+            .replacingOccurrences(of: "\u{202F}", with: " ")
+            .replacingOccurrences(of: " ", with: "")
+    }
+
     func testSameMonthRangeDoesNotRepeatMonth() {
         let service = CalendarService(calendar: gregorian(firstWeekday: 2), locale: Locale(identifier: "en_US"))
         let week = service.week(containing: LocalDay(year: 2026, month: 8, day: 19))
-        XCTAssertEqual(service.weekRangeText(week), "Aug 17–23")
+        XCTAssertEqual(normalized(service.weekRangeText(week)), "Aug17–23")
+
+        let british = CalendarService(calendar: gregorian(firstWeekday: 2), locale: Locale(identifier: "en_GB"))
+        XCTAssertEqual(normalized(british.weekRangeText(week)), "17–23Aug", "Day-first locales lead with the day")
     }
 
     func testCrossMonthRangeRepeatsMonth() {
         let service = CalendarService(calendar: gregorian(firstWeekday: 2), locale: Locale(identifier: "en_US"))
         let week = service.week(containing: LocalDay(year: 2026, month: 8, day: 31))
         XCTAssertEqual(week.start, LocalDay(year: 2026, month: 8, day: 31))
-        XCTAssertEqual(service.weekRangeText(week), "Aug 31–Sep 6")
+        XCTAssertEqual(normalized(service.weekRangeText(week)), "Aug31–Sep6")
+    }
+
+    func testAccessibilityRangeSpeaksFullMonthAndYear() {
+        let service = CalendarService(calendar: gregorian(firstWeekday: 2), locale: Locale(identifier: "en_US"))
+        let week = service.week(containing: LocalDay(year: 2026, month: 8, day: 19))
+        let text = service.weekRangeAccessibilityText(week)
+        XCTAssertTrue(text.contains("August"), text)
+        XCTAssertTrue(text.contains("17"), text)
+        XCTAssertTrue(text.contains("23"), text)
+        XCTAssertTrue(text.contains("2026"), text)
     }
 
     func testDayLabelsAreLocalised() {

@@ -46,7 +46,7 @@ final class RetentionServiceTests: XCTestCase {
 
     override func setUpWithError() throws {
         container = try ModelContainerFactory.inMemory()
-        repository = SwiftDataPlannerRepository(context: container.mainContext)
+        repository = SwiftDataPlannerRepository(container: container)
         defaults = TestFixtures.isolatedDefaults()
         service = RetentionService(repository: repository, calendarService: calendarService, defaults: defaults)
     }
@@ -84,7 +84,7 @@ final class RetentionServiceTests: XCTestCase {
 
     func testFailedPurgeLeavesSavedDayUntouchedAndRetries() throws {
         struct Boom: Error {}
-        let failing = SwiftDataPlannerRepository(context: container.mainContext, save: { throw Boom() })
+        let failing = SwiftDataPlannerRepository(container: container, save: { throw Boom() })
         let failingService = RetentionService(repository: failing, calendarService: calendarService, defaults: defaults)
         try seedJuneBoundaryTasks()
         XCTAssertThrowsError(try failingService.purgeIfNeeded(now: TestFixtures.july18))
@@ -122,7 +122,7 @@ final class AppLifecycleCoordinatorTests: XCTestCase {
 
     override func setUpWithError() throws {
         container = try ModelContainerFactory.inMemory()
-        repository = SwiftDataPlannerRepository(context: container.mainContext)
+        repository = SwiftDataPlannerRepository(container: container)
         defaults = TestFixtures.isolatedDefaults()
         recorder = SchedulerRecorder()
         coordinator = makeCoordinator(now: TestFixtures.july18)
@@ -194,7 +194,7 @@ final class AppLifecycleCoordinatorTests: XCTestCase {
 
     func testBackgroundLaunchFailureCompletesWithoutSuccess() async throws {
         struct Boom: Error {}
-        let failing = SwiftDataPlannerRepository(context: container.mainContext, save: { throw Boom() })
+        let failing = SwiftDataPlannerRepository(container: container, save: { throw Boom() })
         let recorder = recorder!
         let scheduling = AppLifecycleCoordinator.BackgroundScheduling(
             register: { _, handler in recorder.launchHandler = handler; return true },

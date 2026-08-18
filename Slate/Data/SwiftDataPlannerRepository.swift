@@ -3,10 +3,15 @@ import SwiftData
 
 @MainActor
 final class SwiftDataPlannerRepository: PlannerRepository {
+    /// The context only references its container unowned, so the repository keeps the container alive
+    /// for as long as it can issue fetches.
+    private let container: ModelContainer
     private let context: ModelContext
     private let save: @MainActor () throws -> Void
 
-    init(context: ModelContext, save: (@MainActor () throws -> Void)? = nil) {
+    init(container: ModelContainer, save: (@MainActor () throws -> Void)? = nil) {
+        self.container = container
+        let context = container.mainContext
         self.context = context
         self.save = save ?? { try context.save() }
     }
