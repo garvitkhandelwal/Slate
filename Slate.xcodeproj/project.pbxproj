@@ -112,6 +112,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5A1A7E000000000000000053 /* Build configuration list for PBXNativeTarget "Slate" */;
 			buildPhases = (
+				5A1A7E000000000000000080 /* Verify Release Constraints */,
 				5A1A7E000000000000000040 /* Sources */,
 				5A1A7E000000000000000041 /* Frameworks */,
 				5A1A7E000000000000000042 /* Resources */,
@@ -244,6 +245,29 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		5A1A7E000000000000000080 /* Verify Release Constraints */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/build/release-constraints.stamp",
+			);
+			name = "Verify Release Constraints";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/zsh;
+			shellScript = "# Archive/install builds only. The scheme's Archive pre-action runs Scripts/verify-release-constraints.sh\n# unsandboxed and writes this stamp only on success; this sandboxed phase reads nothing else and fails the\n# archive when the audit did not run or did not pass.\nstamp=\"${SRCROOT}/build/release-constraints.stamp\"\nif [ ! -f \"$stamp\" ]; then\n  echo \"error: release constraints audit did not run; archive through the Slate scheme or run Scripts/verify-release-constraints.sh\"\n  exit 1\nfi\nage=$(( $(date +%s) - $(stat -f %m \"$stamp\") ))\nif [ \"$age\" -gt 900 ]; then\n  echo \"error: release constraints stamp is stale; rerun the archive\"\n  exit 1\nfi\necho \"release constraints verified\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		5A1A7E000000000000000040 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -316,6 +340,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;

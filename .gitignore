@@ -20,3 +20,7 @@ Package.resolved
 # Generated reports
 TestResults/
 *.xcresult
+
+# Release audit stamp written by the archive pre-action
+build/release-constraints.stamp
+*.xcarchive
