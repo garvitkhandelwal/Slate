@@ -1,0 +1,22 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Local tooling
+.DS_Store
+*.swp
+*.tmp
+.env
+
+# Generated reports
+TestResults/
+*.xcresult
