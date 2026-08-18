@@ -6,6 +6,8 @@ struct DayView: View {
     @Bindable var model: PlannerViewModel
     let day: LocalDay
     @FocusState private var focus: CaptureTarget?
+    /// Return resigns focus before rapid entry continues; ignore that transient loss.
+    @State private var isSubmitting = false
 
     private var draftBinding: Binding<String> {
         Binding(get: { model.capture.draft }, set: { model.updateDraft($0) })
@@ -15,7 +17,7 @@ struct DayView: View {
         TaskRowEditing(
             draft: draftBinding,
             focus: $focus,
-            onSubmit: { model.submitCapture(keepAdding: false) },
+            onSubmit: { submit(keepAdding: false) },
             onDismiss: { model.dismissCapture(committing: false) }
         )
     }
@@ -49,7 +51,7 @@ struct DayView: View {
                         text: draftBinding,
                         target: .adding(day),
                         accessibilityIdentifier: "capture-field",
-                        onSubmit: { model.submitCapture(keepAdding: true) },
+                        onSubmit: { submit(keepAdding: true) },
                         onDismiss: { model.dismissCapture(committing: false) },
                         focus: $focus
                     )
@@ -87,7 +89,7 @@ struct DayView: View {
             syncFocus(to: target)
         }
         .onChange(of: focus) { previous, current in
-            if current == nil, let previous, previous == model.capture.target {
+            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
                 model.dismissCapture(committing: true)
             }
         }
@@ -114,6 +116,18 @@ struct DayView: View {
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("day-heading")
             EmptyGround(onTap: endCapture)
+        }
+    }
+
+    /// Return commits the draft; a session that stays active (rapid entry or a failed commit) keeps focus.
+    private func submit(keepAdding: Bool) {
+        isSubmitting = true
+        model.submitCapture(keepAdding: keepAdding)
+        let target = model.capture.target
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(40))
+            if let target, model.capture.target == target { focus = target }
+            isSubmitting = false
         }
     }
 

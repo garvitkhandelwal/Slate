@@ -5,6 +5,8 @@ import SwiftUI
 struct WeekView: View {
     @Bindable var model: PlannerViewModel
     @FocusState private var focus: CaptureTarget?
+    /// Return resigns focus before rapid entry continues; ignore that transient loss.
+    @State private var isSubmitting = false
 
     private var draftBinding: Binding<String> {
         Binding(get: { model.capture.draft }, set: { model.updateDraft($0) })
@@ -40,7 +42,7 @@ struct WeekView: View {
                     onAdd: { model.beginAdding(on: day) },
                     onToggle: { model.toggleTask($0) },
                     onDelete: { model.deleteTask($0) },
-                    onSubmit: { model.submitCapture(keepAdding: true) },
+                    onSubmit: submitAndKeepFocus,
                     onDismiss: { model.dismissCapture(committing: false) },
                     onTapGround: endCapture
                 )
@@ -66,9 +68,21 @@ struct WeekView: View {
         }
         .onChange(of: focus) { previous, current in
             // Losing focus by an outside tap or keyboard dismissal commits a valid draft, then exits.
-            if current == nil, let previous, previous == model.capture.target {
+            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
                 model.dismissCapture(committing: true)
             }
+        }
+    }
+
+    /// Return commits the draft; a session that stays active (rapid entry or a failed commit) keeps focus.
+    private func submitAndKeepFocus() {
+        isSubmitting = true
+        model.submitCapture(keepAdding: true)
+        let target = model.capture.target
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(40))
+            if let target, model.capture.target == target { focus = target }
+            isSubmitting = false
         }
     }
 
