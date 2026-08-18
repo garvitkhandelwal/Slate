@@ -26,7 +26,7 @@ extension AppEnvironment {
         #endif
         return AppEnvironment(
             repository: repository,
-            wallpaperStore: NoWallpaperStore(),
+            wallpaperStore: DiskWallpaperStore(baseDirectory: try Self.wallpaperDirectory()),
             retentionService: retention,
             haptics: SystemHapticClient(),
             dateProvider: dateProvider,
@@ -42,6 +42,15 @@ extension AppEnvironment {
         }
         #endif
         return try ModelContainerFactory.production()
+    }
+
+    /// Wallpaper lives beside the store so backup exclusion and UI-test isolation cover both.
+    private static func wallpaperDirectory() throws -> URL {
+        let base = try ModelContainerFactory.slateSupportDirectory()
+        #if DEBUG
+        if UITestBootstrap.isEnabled { return base.appending(path: "UITests", directoryHint: .isDirectory) }
+        #endif
+        return base
     }
 
     private static func defaults() -> UserDefaults {
