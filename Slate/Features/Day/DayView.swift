@@ -1,0 +1,138 @@
+import SwiftUI
+
+/// The focused day: date heading, subordinate weekday, wrapping task rows with inline editing, and `+ add`.
+/// It filters the shared `tasksByDay` state and never creates a second view model or repository.
+struct DayView: View {
+    @Bindable var model: PlannerViewModel
+    let day: LocalDay
+    @FocusState private var focus: CaptureTarget?
+
+    private var draftBinding: Binding<String> {
+        Binding(get: { model.capture.draft }, set: { model.updateDraft($0) })
+    }
+
+    private var editing: TaskRowEditing {
+        TaskRowEditing(
+            draft: draftBinding,
+            focus: $focus,
+            onSubmit: { model.submitCapture(keepAdding: false) },
+            onDismiss: { model.dismissCapture(committing: false) }
+        )
+    }
+
+    var body: some View {
+        List {
+            heading
+                .padding(.top, SlateSpacing.compact)
+                .padding(.bottom, SlateSpacing.section - SlateSpacing.compact)
+                .slateRow()
+
+            ForEach(model.tasks(on: day)) { task in
+                TaskRow(
+                    task: task,
+                    mode: .day,
+                    isEditing: model.capture.isEditing(task.id),
+                    editing: editing,
+                    onToggle: { model.toggleTask(task.id) },
+                    onDelete: { model.deleteTask(task.id) },
+                    onEdit: { model.beginEditing(task) }
+                )
+                .slateRow()
+            }
+
+            HStack(spacing: 0) {
+                Color.clear
+                    .frame(width: SlateSpacing.minimumTarget, height: SlateSpacing.minimumTarget)
+                    .accessibilityHidden(true)
+                if model.capture.isAdding(on: day) {
+                    InlineTaskField(
+                        text: draftBinding,
+                        target: .adding(day),
+                        accessibilityIdentifier: "capture-field",
+                        onSubmit: { model.submitCapture(keepAdding: true) },
+                        onDismiss: { model.dismissCapture(committing: false) },
+                        focus: $focus
+                    )
+                } else {
+                    Button(action: { model.beginAdding(on: day) }) {
+                        Text(AccessibilityLabels.add)
+                            .font(SlateTypography.body)
+                            .foregroundStyle(SlateColors.placeholder)
+                            .frame(minHeight: SlateSpacing.minimumTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("add-\(day.year)-\(day.month)-\(day.day)")
+                    EmptyGround(onTap: endCapture)
+                }
+            }
+            .slateRow()
+
+            EmptyGround(onTap: endCapture)
+                .frame(height: SlateSpacing.groundHeight)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+        }
+        .listStyle(.plain)
+        .listRowSpacing(0)
+        .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
+        .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(.interactively)
+        .background(SlateColors.ground.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .accessibilityIdentifier("day-root")
+        .onChange(of: model.capture.target) { _, target in
+            syncFocus(to: target)
+        }
+        .onChange(of: focus) { previous, current in
+            if current == nil, let previous, previous == model.capture.target {
+                model.dismissCapture(committing: true)
+            }
+        }
+        .onDisappear {
+            // Leaving the screen commits a valid draft before navigation completes.
+            model.dismissCapture(committing: true)
+        }
+    }
+
+    private var heading: some View {
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: SlateSpacing.compact) {
+                Text(model.calendarService.dayHeading(day))
+                    .font(SlateTypography.heading)
+                    .foregroundStyle(SlateColors.ink)
+                Text(model.calendarService.weekdayText(day))
+                    .font(SlateTypography.metadata)
+                    .tracking(SlateTypography.metadataTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(SlateColors.secondary)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(AccessibilityLabels.day(day, calendarService: model.calendarService, isToday: model.isToday(day)))
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("day-heading")
+            EmptyGround(onTap: endCapture)
+        }
+    }
+
+    private func endCapture() {
+        if focus != nil {
+            focus = nil
+        } else if model.capture.isActive {
+            model.dismissCapture(committing: true)
+        }
+    }
+
+    private func syncFocus(to target: CaptureTarget?) {
+        guard let target else {
+            focus = nil
+            return
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(40))
+            if model.capture.target == target { focus = target }
+        }
+    }
+}

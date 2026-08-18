@@ -2,9 +2,22 @@ import SwiftUI
 
 @main
 struct SlateApp: App {
-    private let bootstrap: Result<(PlannerViewModel, AppLifecycleCoordinator), PlannerError>
+    private enum Bootstrap {
+        case ready(PlannerViewModel, AppLifecycleCoordinator)
+        case failed(PlannerError)
+        /// Hosted unit tests need the module, not the planner surface or its store.
+        case unitTestHost
+    }
+
+    private let bootstrap: Bootstrap
 
     init() {
+        #if DEBUG
+        if NSClassFromString("XCTestCase") != nil {
+            bootstrap = .unitTestHost
+            return
+        }
+        #endif
         do {
             let environment = try AppEnvironment.production()
             let lifecycle = AppLifecycleCoordinator(
@@ -13,21 +26,22 @@ struct SlateApp: App {
                 calendarService: environment.calendarService
             )
             lifecycle.registerBackgroundTask()
-            bootstrap = .success((PlannerViewModel(environment: environment), lifecycle))
+            bootstrap = .ready(PlannerViewModel(environment: environment), lifecycle)
         } catch {
-            bootstrap = .failure(.unavailableStore)
+            bootstrap = .failed(.unavailableStore)
         }
     }
 
     var body: some Scene {
         WindowGroup {
             switch bootstrap {
-            case .success:
-                Text("Slate")
-                    .accessibilityIdentifier("planner-root")
-            case .failure(let error):
+            case .ready(let model, let lifecycle):
+                PlannerRootView(model: model, lifecycle: lifecycle)
+            case .failed(let error):
                 Text(error.localizedDescription)
                     .padding()
+            case .unitTestHost:
+                Text("Slate")
             }
         }
     }

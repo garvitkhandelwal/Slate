@@ -22,6 +22,15 @@ enum CaptureSession: Equatable {
 
     var isActive: Bool { self != .none }
 
+    /// Focus identity of the single live field, if any.
+    var target: CaptureTarget? {
+        switch self {
+        case .none: nil
+        case let .adding(day, _): .adding(day)
+        case let .editing(task, _): .editing(task.id)
+        }
+    }
+
     func isAdding(on day: LocalDay) -> Bool {
         if case let .adding(captureDay, _) = self { return captureDay == day }
         return false
@@ -31,4 +40,10 @@ enum CaptureSession: Equatable {
         if case let .editing(task, _) = self { return task.id == id }
         return false
     }
+}
+
+/// Identity used by `@FocusState` so focus follows the model transition, never the other way round.
+enum CaptureTarget: Hashable {
+    case adding(LocalDay)
+    case editing(UUID)
 }
