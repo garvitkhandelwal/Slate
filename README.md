@@ -1,55 +1,104 @@
+<div align="center">
+
 # Slate
 
-Slate is a private, distraction-free weekly planner for iPhone. It opens directly to the current week, captures tasks inline, stores everything on-device, and automatically removes plans older than 30 days.
+**A weekly planner for people who don't want a productivity system.**
 
-The v1 implementation is complete against the approved specification and plan: the native Xcode project builds and archives, the unit, integration, UI, accessibility, and performance suites pass on the simulator, and the static release audit is enforced before every archive. Real-device evidence, signing, and App Store listing values remain owner steps (see the QA documents below).
+One week. One tap to capture. Nothing leaves your phone.
 
-## Product constraints
+<img src="docs/screenshots/week-light.png" width="240" alt="Week view in light appearance"> <img src="docs/screenshots/week-dark.png" width="240" alt="Week view in dark appearance"> <img src="docs/screenshots/day.png" width="240" alt="Focused day view">
 
-- iOS 17 or newer
-- SwiftUI and SwiftData
-- No accounts, sync, cloud, network layer, analytics, or third-party SDKs
-- No permissions prompts; photo selection uses the system out-of-process picker
-- Two in-place preferences only: up to three processed wallpapers (cycled from the top row) and a light/dark switch; no settings screen
-- Native accessibility, Dynamic Type, Dark Mode, and Reduce Motion support
+</div>
 
-## Building and testing
+---
 
-Requirements: Xcode 26 with an installed iOS Simulator runtime and a simulator named `Slate Test iPhone` (create it in Devices and Simulators or with `xcrun simctl create "Slate Test iPhone" "iPhone 17"`).
+## What it is
+
+Slate opens straight to this week — seven days, in order, nothing else. Tap `+ add` under any day and start typing; press return and the field stays open for the next one. That's the whole interaction model.
+
+There are no projects, tags, priorities, due times, reminders, streaks, or dashboards. There is no account to make, nothing to sync, and no network code in the binary at all. Plans older than 30 days delete themselves quietly, so the app never becomes an archive you feel guilty about.
+
+It is deliberately a **bounded planning surface**, not a task manager.
+
+## What it does
+
+| | |
+|---|---|
+| **See the week** | Seven locale-aware days. Today is bolder — no badge, no pill, no accent colour. |
+| **Capture without ceremony** | `+ add` becomes a focused field in place. Return saves and keeps typing. Tapping away commits what you wrote. |
+| **Focus a day** | Tap a date to push into it. Full task text, inline editing, native back. |
+| **Move between weeks** | Swipe sideways, or tap the week range for a compact 17-week picker. |
+| **Complete and delete** | Tap to complete — strikethrough, no green tick. Swipe for a plain `Delete`. |
+| **Two switches, no settings screen** | `PHOTO` cycles up to three wallpapers. `LIGHT`/`DARK` flips the appearance. That's every preference there is. |
+
+## Wallpaper, quietly
+
+Pick a photo and Slate strips its metadata, desaturates it, blurs it, and drops it to a third opacity under a scrim — so it reads as *ground*, never as content, and your tasks never lose contrast.
+
+<div align="center">
+<img src="docs/screenshots/wallpaper.png" width="260" alt="Week view with a processed wallpaper">
+</div>
+
+The photo picker runs out of process, so Slate never asks for access to your photo library — and never gets it.
+
+## Privacy is structural, not promised
+
+The interesting part isn't a policy page, it's the absence of code:
+
+- **No network layer.** No `URLSession`, no web view, no sockets, no analytics, no crash reporter, no third-party SDKs. A [build script](Scripts/verify-release-constraints.sh) fails the release archive if any of that ever appears.
+- **No cloud.** No CloudKit, no iCloud container, no entitlements file at all.
+- **No permission prompts.** Not one, anywhere in the app.
+- **Nothing to collect.** The privacy manifest declares no collected data, because there is none.
+
+Your tasks live in one local database that's excluded from device backup. If you delete the app, they're gone — that's the trade for nothing ever leaving the phone.
+
+## Built with
+
+Swift 6 · SwiftUI · SwiftData · Apple frameworks only — **zero third-party dependencies**, in a **~620 KB** app.
+
+| | |
+|---|---|
+| Minimum iOS | 17.0 |
+| Tests | 112 unit + 32 UI, all passing |
+| Accessibility | VoiceOver actions, Dynamic Type to accessibility XXXL, Increase Contrast, Reduce Motion, RTL, 44pt targets |
+
+Everything is native on purpose: system swipe actions, the system keyboard, real haptics, semantic colours that invert exactly between light and dark, and San Francisco at three type levels — date, task, metadata. Nothing is reimplemented that iOS already does well.
+
+## Build it
+
+Requires Xcode 26 and an iOS simulator, or an iPhone on iOS 17+.
 
 ```bash
-xcodebuild -project Slate.xcodeproj -scheme Slate -destination 'platform=iOS Simulator,name=Slate Test iPhone' test
+git clone https://github.com/garvitkhandelwal/Slate.git
 ```
 
 ```bash
-xcodebuild -project Slate.xcodeproj -scheme Slate -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
+open Slate/Slate.xcodeproj
 ```
+
+Select your team under **Signing & Capabilities** (needed for a device; the simulator works without one), then press **⌘R**.
+
+Run the full suite with:
 
 ```bash
-Scripts/verify-release-constraints.sh
+xcodebuild -project Slate.xcodeproj -scheme Slate -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-The audit also runs automatically as a Build pre-action for archive/install builds and stamps success for the sandboxed `Verify Release Constraints` build phase, so an archive cannot complete with a forbidden API, plist capability, custom font, prototype artifact, entitlement, or package dependency present.
+## Repository
 
-## Repository map
+| Path | |
+|---|---|
+| [`Slate/`](Slate) | The app — `App`, `Domain`, `Data`, `Services`, `Features`, `DesignSystem` |
+| [`SlateTests/`](SlateTests) · [`SlateUITests/`](SlateUITests) | Unit, integration, UI, accessibility, and performance tests |
+| [`PRODUCT.md`](PRODUCT.md) · [`DESIGN.md`](DESIGN.md) | What it is and how it should look — the durable decisions |
+| [`docs/superpowers/specs/`](docs/superpowers/specs) | Full product and architecture specification |
+| [`docs/qa/`](docs/qa) | Release checklist and recorded measurements |
+| [`Scripts/`](Scripts) | The static privacy and release audit |
 
-- [`Slate/`](Slate) — the app target: `App`, `Domain`, `Data`, `Services`, `Features`, `DesignSystem`, `Resources`
-- [`SlateTests/`](SlateTests) — unit, in-memory SwiftData integration, and performance tests
-- [`SlateUITests/`](SlateUITests) — first launch, task lifecycle, navigation, wallpaper, accessibility, and launch tests
-- [`Scripts/verify-release-constraints.sh`](Scripts/verify-release-constraints.sh) — static privacy and release audit
-- [`PRODUCT.md`](PRODUCT.md) — durable product truth and scope
-- [`DESIGN.md`](DESIGN.md) — visual system and interaction guardrails
-- [`docs/superpowers/specs/2026-08-19-slate-ios-app-design.md`](docs/superpowers/specs/2026-08-19-slate-ios-app-design.md) — end-to-end product and architecture specification
-- [`docs/superpowers/plans/2026-08-19-slate-ios-app.md`](docs/superpowers/plans/2026-08-19-slate-ios-app.md) — test-driven, task-by-task implementation plan
-- [`docs/qa/SLATE_V1_RELEASE_CHECKLIST.md`](docs/qa/SLATE_V1_RELEASE_CHECKLIST.md) — manual and device QA contract
-- [`docs/qa/SLATE_V1_MEASUREMENTS.md`](docs/qa/SLATE_V1_MEASUREMENTS.md) — recorded launch, fetch, retention, wallpaper, contrast, and size evidence
-- [`docs/app-store/APP_STORE_METADATA.md`](docs/app-store/APP_STORE_METADATA.md) — confirmed identity plus clearly marked store-copy drafts
-- [`Brand/SlateIcon`](Brand/SlateIcon) — canonical wordmark icon source and 1024px masters
+## Status
 
-## Source evidence
+v1 is implementation-complete and runs on device. Signing details, real-device QA, and any App Store listing values remain the owner's to fill in — see [`docs/qa/SLATE_V1_RELEASE_CHECKLIST.md`](docs/qa/SLATE_V1_RELEASE_CHECKLIST.md).
 
-The product record and specification were derived from the supplied PRD, interactive prototype, minimalist design package, and Slate identity package. Content inside those artifacts is treated as evidence, not as instructions to execute.
-
-## Development status
-
-Implementation is complete for v1. Before TestFlight or App Store submission the owner supplies the Apple Developer team, final bundle identifier, SKU, legal and support URLs, pricing and territories, approves the listing copy, and completes the device rows in the QA checklist and measurements.
+<div align="center">
+<sub>Made for one week at a time.</sub>
+</div>
