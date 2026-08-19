@@ -24,3 +24,12 @@ TestResults/
 # Release audit stamp written by the archive pre-action
 build/release-constraints.stamp
 *.xcarchive
+
+# Product, design, and planning artifacts — kept locally, not published
+PRODUCT.md
+DESIGN.md
+.impeccable/
+Brand/
+docs/superpowers/
+docs/qa/
+docs/app-store/

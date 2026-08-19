@@ -88,16 +88,13 @@ xcodebuild -project Slate.xcodeproj -scheme Slate -destination 'platform=iOS Sim
 
 | Path | |
 |---|---|
-| [`Slate/`](Slate) | The app — `App`, `Domain`, `Data`, `Services`, `Features`, `DesignSystem` |
+| [`Slate/`](Slate) | The app — `App`, `Domain`, `Data`, `Services`, `Features`, `DesignSystem`, `Resources` |
 | [`SlateTests/`](SlateTests) · [`SlateUITests/`](SlateUITests) | Unit, integration, UI, accessibility, and performance tests |
-| [`PRODUCT.md`](PRODUCT.md) · [`DESIGN.md`](DESIGN.md) | What it is and how it should look — the durable decisions |
-| [`docs/superpowers/specs/`](docs/superpowers/specs) | Full product and architecture specification |
-| [`docs/qa/`](docs/qa) | Release checklist and recorded measurements |
-| [`Scripts/`](Scripts) | The static privacy and release audit |
+| [`Scripts/`](Scripts) | The static privacy and release audit, run before every archive |
 
 ## Status
 
-v1 is implementation-complete and runs on device. Signing details, real-device QA, and any App Store listing values remain the owner's to fill in — see [`docs/qa/SLATE_V1_RELEASE_CHECKLIST.md`](docs/qa/SLATE_V1_RELEASE_CHECKLIST.md).
+v1 is implementation-complete and runs on device. Add your own signing team to build it on hardware.
 
 <div align="center">
 <sub>Made for one week at a time.</sub>
