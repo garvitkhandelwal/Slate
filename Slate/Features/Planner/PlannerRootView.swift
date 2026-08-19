@@ -25,6 +25,7 @@ struct PlannerRootView: View {
                 }
         }
         .tint(SlateColors.ink)
+        .preferredColorScheme(model.appearanceOverride)
         .alert(isPresented: isErrorPresented, error: model.presentedError) { _ in
             Button(AccessibilityLabels.ok, role: .cancel) {}
         } message: { _ in

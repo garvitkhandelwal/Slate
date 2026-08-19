@@ -21,15 +21,17 @@ struct WeekView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            ZStack {
-                weekList
-                    .id(model.displayedWeek.start)
-                    .transition(SlateMotion.weekTransition(travel: travel, reduceMotion: reduceMotion))
+        ZStack {
+            WallpaperLayer(image: model.wallpaperImage)
+            VStack(spacing: 0) {
+                header
+                ZStack {
+                    weekList
+                        .id(model.displayedWeek.start)
+                        .transition(SlateMotion.weekTransition(travel: travel, reduceMotion: reduceMotion))
+                }
             }
         }
-        .background(WallpaperLayer(image: model.wallpaperImage))
         .wallpaperActionDialog(model: model)
         .navigationTitle(AccessibilityLabels.week)
         .toolbar(.hidden, for: .navigationBar)
@@ -48,18 +50,21 @@ struct WeekView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
-            WeekRangeButton(
-                text: model.calendarService.weekRangeText(model.displayedWeek),
-                accessibilityText: AccessibilityLabels.weekRange(
-                    model.displayedWeek,
-                    calendarService: model.calendarService,
-                    isCurrentWeek: model.displayedWeek == model.currentWeek
-                ),
-                isExpanded: model.isWeekPickerExpanded,
-                action: togglePicker,
-                onTapGround: endCapture,
-                onWallpaperOptions: presentWallpaperOptions
-            )
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                WeekRangeButton(
+                    text: model.calendarService.weekRangeText(model.displayedWeek),
+                    accessibilityText: AccessibilityLabels.weekRange(
+                        model.displayedWeek,
+                        calendarService: model.calendarService,
+                        isCurrentWeek: model.displayedWeek == model.currentWeek
+                    ),
+                    isExpanded: model.isWeekPickerExpanded,
+                    action: togglePicker,
+                    onTapGround: endCapture,
+                    onWallpaperOptions: presentWallpaperOptions
+                )
+                QuickSwitchControls(model: model)
+            }
             .padding(.top, SlateSpacing.compact)
             .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: handleSwipe)
 

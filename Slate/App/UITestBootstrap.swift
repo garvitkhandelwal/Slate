@@ -11,12 +11,12 @@ enum UITestBootstrap {
     static var seedsExpiredTask: Bool { ProcessInfo.processInfo.arguments.contains("-seed-expired-task") }
     static var seedsWallpaper: Bool { ProcessInfo.processInfo.arguments.contains("-seed-wallpaper") }
 
-    /// `-ui-appearance dark|light` forces an appearance for independent light/dark launches.
-    static var forcedColorScheme: ColorScheme? {
+    /// `-ui-appearance dark|light` seeds the persisted appearance override for independent light/dark launches.
+    static func seedPreferences(into defaults: UserDefaults) {
         switch UserDefaults.standard.string(forKey: "ui-appearance") {
-        case "dark": .dark
-        case "light": .light
-        default: nil
+        case "dark": defaults.set("dark", forKey: PlannerViewModel.appearanceOverrideKey)
+        case "light": defaults.set("light", forKey: PlannerViewModel.appearanceOverrideKey)
+        default: break
         }
     }
 
@@ -40,7 +40,7 @@ enum UITestBootstrap {
 
     /// Writes a generated, already-processed image where the disk store expects it so wallpaper UI tests
     /// never depend on the system photo picker.
-    static func seedWallpaper(in baseDirectory: URL) throws {
+    static func seedWallpaper(in baseDirectory: URL, defaults: UserDefaults) throws {
         guard seedsWallpaper else { return }
         let size = CGSize(width: 900, height: 1600)
         let rendered = UIGraphicsImageRenderer(size: size).pngData { context in
@@ -49,9 +49,11 @@ enum UITestBootstrap {
             context.cgContext.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
         }
         let processed = try WallpaperImageProcessor.processSynchronously(rendered)
-        let fileURL = baseDirectory.appending(path: DiskWallpaperStore.relativePath)
+        let fileURL = baseDirectory.appending(path: DiskWallpaperStore.relativePath(slot: 0))
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try processed.write(to: fileURL, options: .atomic)
+        // A seeded wallpaper starts showing, as if the user had just chosen it.
+        defaults.set(0, forKey: PlannerViewModel.selectedWallpaperKey)
     }
 }
 #endif

@@ -10,7 +10,7 @@ The v1 implementation is complete against the approved specification and plan: t
 - SwiftUI and SwiftData
 - No accounts, sync, cloud, network layer, analytics, or third-party SDKs
 - No permissions prompts; photo selection uses the system out-of-process picker
-- One customization only: an optional processed wallpaper
+- Two in-place preferences only: up to three processed wallpapers (cycled from the top row) and a light/dark switch; no settings screen
 - Native accessibility, Dynamic Type, Dark Mode, and Reduce Motion support
 
 ## Building and testing

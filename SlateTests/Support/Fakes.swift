@@ -104,39 +104,46 @@ final class FakeDateProvider: DateProviding, @unchecked Sendable {
 }
 
 actor FakeWallpaperStore: WallpaperStoring {
-    enum Call: Equatable { case load, save, remove }
+    enum Call: Equatable { case load, save(Int), remove(Int) }
 
-    private(set) var stored: Data?
+    private(set) var stored: [Data]
     private(set) var calls: [Call] = []
     var loadError: PlannerError?
     var saveError: PlannerError?
     var removeError: PlannerError?
 
-    init(stored: Data? = nil) {
+    init(stored: [Data] = []) {
         self.stored = stored
     }
 
-    func setStored(_ data: Data?) { stored = data }
+    func setStored(_ data: [Data]) { stored = data }
     func setLoadError(_ error: PlannerError?) { loadError = error }
     func setSaveError(_ error: PlannerError?) { saveError = error }
     func setRemoveError(_ error: PlannerError?) { removeError = error }
 
-    func load() async throws -> Data? {
+    func loadAll() async throws -> [Data] {
         calls.append(.load)
         if let loadError { throw loadError }
         return stored
     }
 
-    func saveImportedImage(_ data: Data) async throws {
-        calls.append(.save)
+    func saveImportedImage(_ data: Data, slot: Int) async throws {
+        calls.append(.save(slot))
         if let saveError { throw saveError }
-        stored = data
+        if stored.indices.contains(slot) {
+            stored[slot] = data
+        } else if slot == stored.count, slot < WallpaperSlots.count {
+            stored.append(data)
+        } else {
+            throw PlannerError.wallpaperStorage
+        }
     }
 
-    func remove() async throws {
-        calls.append(.remove)
+    func remove(slot: Int) async throws {
+        calls.append(.remove(slot))
         if let removeError { throw removeError }
-        stored = nil
+        guard stored.indices.contains(slot) else { return }
+        stored.remove(at: slot)
     }
 }
 
@@ -164,12 +171,20 @@ struct PlannerHarness {
         tasks: [TaskSnapshot] = [],
         repositoryError: PlannerError? = nil,
         wallpaperData: Data? = nil,
+        wallpapers: [Data] = [],
+        selectedWallpaperIndex: Int? = nil,
         calendarService: CalendarService = TestFixtures.gregorianCalendarService()
     ) {
         repository = FakePlannerRepository(tasks: tasks, nextError: repositoryError)
-        wallpaperStore = FakeWallpaperStore(stored: wallpaperData)
+        wallpaperStore = FakeWallpaperStore(stored: wallpaperData.map { [$0] } ?? wallpapers)
         haptics = FakeHaptics()
         defaults = TestFixtures.isolatedDefaults("PlannerHarness")
+        if let selectedWallpaperIndex {
+            defaults.set(selectedWallpaperIndex, forKey: PlannerViewModel.selectedWallpaperKey)
+        } else if wallpaperData != nil {
+            // A single seeded wallpaper is showing, matching the pre-slot behaviour the tests were written for.
+            defaults.set(0, forKey: PlannerViewModel.selectedWallpaperKey)
+        }
         self.calendarService = calendarService
         dateProvider = FakeDateProvider(date: now)
         let environment = AppEnvironment(
@@ -178,7 +193,8 @@ struct PlannerHarness {
             retentionService: RetentionService(repository: repository, calendarService: calendarService, defaults: defaults),
             haptics: haptics,
             dateProvider: dateProvider,
-            calendarService: calendarService
+            calendarService: calendarService,
+            defaults: defaults
         )
         model = PlannerViewModel(environment: environment)
     }

@@ -6,7 +6,6 @@ import SwiftUI
 /// the out-of-process picker, so no Photos-library permission is ever requested.
 struct WallpaperActionDialog: ViewModifier {
     @Bindable var model: PlannerViewModel
-    @State private var isPickerPresented = false
     @State private var selectedItem: PhotosPickerItem?
 
     func body(content: Content) -> some View {
@@ -17,7 +16,7 @@ struct WallpaperActionDialog: ViewModifier {
                 titleVisibility: .visible
             ) {
                 Button(AccessibilityLabels.choosePhoto) {
-                    isPickerPresented = true
+                    model.isPhotoPickerPresented = true
                 }
                 if model.wallpaperImage != nil {
                     Button(AccessibilityLabels.removeWallpaper, role: .destructive) {
@@ -25,7 +24,7 @@ struct WallpaperActionDialog: ViewModifier {
                     }
                 }
             }
-            .photosPicker(isPresented: $isPickerPresented, selection: $selectedItem, matching: .images)
+            .photosPicker(isPresented: $model.isPhotoPickerPresented, selection: $selectedItem, matching: .images)
             .onChange(of: selectedItem) { _, item in
                 guard let item else { return }
                 selectedItem = nil

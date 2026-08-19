@@ -87,9 +87,10 @@ final class AccessibilitySmokeTests: XCTestCase {
         let app = launchResetApp()
         addTask("Target task", in: app)
         var elements = [app.buttons["week-range"], app.buttons["day-label-" + app.todayDayIdentifierSuffix],
-                        app.buttons["add-" + app.todayDayIdentifierSuffix], app.taskRow("Target task")]
+                        app.buttons["add-" + app.todayDayIdentifierSuffix], app.taskRow("Target task"),
+                        app.buttons["wallpaper-switch"], app.buttons["appearance-switch"]]
         elements = elements.filter { $0.exists }
-        XCTAssertEqual(elements.count, 4)
+        XCTAssertEqual(elements.count, 6)
         for element in elements {
             XCTAssertGreaterThanOrEqual(element.frame.height, 44, element.debugDescription)
             XCTAssertGreaterThanOrEqual(element.frame.width, 44, element.debugDescription)

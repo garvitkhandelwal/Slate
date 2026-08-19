@@ -17,14 +17,35 @@ final class PlannerViewModel {
     var capture: CaptureSession = .none
     var isWeekPickerExpanded = false
     var isWallpaperDialogPresented = false
-    private(set) var wallpaperImage: UIImage?
+    var isPhotoPickerPresented = false
+    /// Decoded stored wallpapers in slot order (at most `WallpaperSlots.count`).
+    private(set) var wallpapers: [UIImage] = []
+    /// Which stored wallpaper is showing; `nil` shows the flat ground.
+    private(set) var selectedWallpaperIndex: Int?
+    /// Persisted in-app appearance; `nil` follows the system.
+    private(set) var appearanceOverride: ColorScheme?
     var presentedError: PlannerError?
+
+    nonisolated static let selectedWallpaperKey = "selectedWallpaperIndex"
+    nonisolated static let appearanceOverrideKey = "appearanceOverride"
 
     init(environment: AppEnvironment) {
         self.environment = environment
         let today = LocalDay(date: environment.dateProvider.now(), calendar: environment.calendarService.calendar)
         displayedWeek = environment.calendarService.week(containing: today)
         for day in displayedWeek.days { tasksByDay[day] = [] }
+        selectedWallpaperIndex = environment.defaults.object(forKey: Self.selectedWallpaperKey) as? Int
+        switch environment.defaults.string(forKey: Self.appearanceOverrideKey) {
+        case "light": appearanceOverride = .light
+        case "dark": appearanceOverride = .dark
+        default: appearanceOverride = nil
+        }
+    }
+
+    /// The wallpaper currently rendered behind week and day content.
+    var wallpaperImage: UIImage? {
+        guard let index = selectedWallpaperIndex, wallpapers.indices.contains(index) else { return nil }
+        return wallpapers[index]
     }
 
     // MARK: Derived facts for views
@@ -196,8 +217,32 @@ final class PlannerViewModel {
 
     // MARK: Wallpaper
 
+    /// Visible label of the wallpaper switch: `PHOTO` when nothing is showing, else `n/N`.
+    var wallpaperSwitchLabel: String {
+        guard let index = selectedWallpaperIndex, wallpapers.indices.contains(index) else {
+            return AccessibilityLabels.photo
+        }
+        return "\(index + 1)/\(wallpapers.count)"
+    }
+
+    /// Steps 1/N → … → N/N → none → 1/N. With nothing stored it opens the photo picker instead.
+    func cycleWallpaper() {
+        guard resolveCurrentCapture() else { return }
+        guard !wallpapers.isEmpty else {
+            isPhotoPickerPresented = true
+            return
+        }
+        let next: Int?
+        switch selectedWallpaperIndex {
+        case .none: next = 0
+        case let .some(index) where index + 1 < wallpapers.count: next = index + 1
+        default: next = nil
+        }
+        select(wallpaperIndex: next)
+    }
+
     /// Loads the selection through the picker bridge, persists the processed copy, then reloads and decodes
-    /// the sandboxed file so visible state always represents persisted data.
+    /// the sandboxed files so visible state always represents persisted data.
     func importWallpaper(_ item: PhotosPickerItem) async {
         do {
             let data = try await WallpaperPickerBridge().data(from: item)
@@ -207,37 +252,88 @@ final class PlannerViewModel {
         }
     }
 
+    /// Fills the next free slot, or replaces the showing wallpaper (else the last one) when all slots are full.
     func importWallpaper(data: Data) async {
+        let slot: Int
+        if wallpapers.count < WallpaperSlots.count {
+            slot = wallpapers.count
+        } else {
+            slot = selectedWallpaperIndex ?? (wallpapers.count - 1)
+        }
         do {
-            try await environment.wallpaperStore.saveImportedImage(data)
-            await loadWallpaper()
+            try await environment.wallpaperStore.saveImportedImage(data, slot: slot)
+            await loadWallpapers()
+            select(wallpaperIndex: wallpapers.indices.contains(slot) ? slot : nil)
         } catch {
             presentedError = error as? PlannerError ?? .wallpaperImport
         }
     }
 
-    /// Deletes the sandboxed file first; visible state clears only after the removal succeeds.
+    /// Deletes the showing wallpaper first; visible state clears only after the removal succeeds.
     func removeWallpaper() async {
+        guard let index = selectedWallpaperIndex, wallpapers.indices.contains(index) else { return }
         do {
-            try await environment.wallpaperStore.remove()
-            wallpaperImage = nil
+            try await environment.wallpaperStore.remove(slot: index)
+            await loadWallpapers()
+            select(wallpaperIndex: nil)
         } catch {
             presentedError = error as? PlannerError ?? .wallpaperStorage
         }
     }
 
-    private func loadWallpaper() async {
-        do {
-            guard let data = try await environment.wallpaperStore.load() else {
-                wallpaperImage = nil
-                return
-            }
-            wallpaperImage = try await WallpaperImageLoader().image(from: data)
-        } catch {
-            // A corrupt or unreadable stored file falls back to no wallpaper and is removed silently.
-            wallpaperImage = nil
-            try? await environment.wallpaperStore.remove()
+    private func select(wallpaperIndex index: Int?) {
+        selectedWallpaperIndex = index
+        if let index {
+            environment.defaults.set(index, forKey: Self.selectedWallpaperKey)
+        } else {
+            environment.defaults.removeObject(forKey: Self.selectedWallpaperKey)
         }
+    }
+
+    /// Decodes every stored wallpaper off the main actor. A corrupt or unreadable slot falls back to no
+    /// wallpaper for that slot and is removed silently; the showing index is clamped to what remains.
+    private func loadWallpapers() async {
+        var decoded: [UIImage] = []
+        do {
+            let stored = try await environment.wallpaperStore.loadAll()
+            var corruptSlots: [Int] = []
+            for (slot, data) in stored.enumerated() {
+                if let image = try? await WallpaperImageLoader().image(from: data) {
+                    decoded.append(image)
+                } else {
+                    corruptSlots.append(slot)
+                }
+            }
+            // Remove from the highest slot down so compaction never shifts a slot still pending removal.
+            for slot in corruptSlots.reversed() {
+                try? await environment.wallpaperStore.remove(slot: slot)
+            }
+        } catch {
+            decoded = []
+        }
+        wallpapers = decoded
+        if let index = selectedWallpaperIndex, !decoded.indices.contains(index) {
+            select(wallpaperIndex: decoded.isEmpty ? nil : decoded.count - 1)
+        }
+    }
+
+    /// Kept for the launch path: `start()` loads wallpapers after the first fetch.
+    private func loadWallpaper() async {
+        await loadWallpapers()
+    }
+
+    // MARK: Appearance
+
+    /// The label names the appearance a tap switches to.
+    func appearanceSwitchLabel(current: ColorScheme) -> String {
+        current == .dark ? AccessibilityLabels.light : AccessibilityLabels.dark
+    }
+
+    /// Flips from the effective appearance and persists the choice; the first tap leaves "system" behind.
+    func toggleAppearance(current: ColorScheme) {
+        let next: ColorScheme = current == .dark ? .light : .dark
+        appearanceOverride = next
+        environment.defaults.set(next == .dark ? "dark" : "light", forKey: Self.appearanceOverrideKey)
     }
 
     // MARK: Private state helpers

@@ -23,6 +23,16 @@ enum AccessibilityLabels {
     static var ok: String { String(localized: "ok", defaultValue: "OK") }
     static var expanded: String { String(localized: "expanded", defaultValue: "Expanded") }
     static var collapsed: String { String(localized: "collapsed", defaultValue: "Collapsed") }
+    static var photo: String { String(localized: "photo", defaultValue: "Photo") }
+    static var light: String { String(localized: "light", defaultValue: "Light") }
+    static var dark: String { String(localized: "dark", defaultValue: "Dark") }
+    static var switchToLight: String { String(localized: "switch_to_light", defaultValue: "Switch to light appearance") }
+    static var switchToDark: String { String(localized: "switch_to_dark", defaultValue: "Switch to dark appearance") }
+    static var wallpaperSwitchHint: String { String(localized: "wallpaper_switch_hint", defaultValue: "Shows the next wallpaper") }
+
+    static func wallpaperPosition(index: Int, count: Int) -> String {
+        String(localized: "wallpaper_position", defaultValue: "Wallpaper \(index) of \(count)")
+    }
 
     // MARK: Composed date labels
 

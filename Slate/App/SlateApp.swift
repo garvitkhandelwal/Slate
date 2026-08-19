@@ -37,7 +37,6 @@ struct SlateApp: App {
             switch bootstrap {
             case .ready(let model, let lifecycle):
                 PlannerRootView(model: model, lifecycle: lifecycle)
-                    .modifier(TestAppearance())
             case .failed(let error):
                 Text(error.localizedDescription)
                     .padding()
@@ -45,20 +44,5 @@ struct SlateApp: App {
                 Text("Slate")
             }
         }
-    }
-}
-
-/// DEBUG-only forced appearance for UI-test launches; a no-op in release builds.
-private struct TestAppearance: ViewModifier {
-    func body(content: Content) -> some View {
-        #if DEBUG
-        if UITestBootstrap.isEnabled, let scheme = UITestBootstrap.forcedColorScheme {
-            content.preferredColorScheme(scheme)
-        } else {
-            content
-        }
-        #else
-        content
-        #endif
     }
 }

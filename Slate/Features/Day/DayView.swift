@@ -23,9 +23,37 @@ struct DayView: View {
     }
 
     var body: some View {
+        ZStack {
+            WallpaperLayer(image: model.wallpaperImage)
+            list
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .accessibilityIdentifier("day-root")
+        .onChange(of: model.capture.target) { _, target in
+            syncFocus(to: target)
+        }
+        .onChange(of: focus) { previous, current in
+            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
+                model.dismissCapture(committing: true)
+            }
+        }
+        .onDisappear {
+            // Leaving the screen commits a valid draft before navigation completes.
+            model.dismissCapture(committing: true)
+        }
+    }
+
+    private var list: some View {
         List {
+            // The quick switches sit at the trailing end of the top row, under the native back control.
+            HStack(spacing: 0) {
+                EmptyGround(onTap: endCapture)
+                QuickSwitchControls(model: model)
+            }
+            .slateRow()
+
             heading
-                .padding(.top, SlateSpacing.compact)
                 .padding(.bottom, SlateSpacing.section - SlateSpacing.compact)
                 .slateRow()
 
@@ -84,22 +112,6 @@ struct DayView: View {
         .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
-        .background(WallpaperLayer(image: model.wallpaperImage))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .accessibilityIdentifier("day-root")
-        .onChange(of: model.capture.target) { _, target in
-            syncFocus(to: target)
-        }
-        .onChange(of: focus) { previous, current in
-            if current == nil, !isSubmitting, let previous, previous == model.capture.target {
-                model.dismissCapture(committing: true)
-            }
-        }
-        .onDisappear {
-            // Leaving the screen commits a valid draft before navigation completes.
-            model.dismissCapture(committing: true)
-        }
     }
 
     private var heading: some View {

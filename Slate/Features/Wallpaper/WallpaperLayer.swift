@@ -15,23 +15,25 @@ struct WallpaperLayer: View {
         ZStack {
             SlateColors.ground
             if let image {
-                decorative(image)
-                    .resizable()
-                    .scaledToFill()
-                    .saturation(0)
-                    .blur(radius: Self.blurRadius)
-                    .opacity(Self.imageOpacity)
-                    .ignoresSafeArea()
+                // The overlay keeps the aspect-filled image out of layout so it can never widen its container.
+                Color.clear
+                    .overlay {
+                        decorative(image)
+                            .resizable()
+                            .scaledToFill()
+                            .saturation(0)
+                            .blur(radius: Self.blurRadius)
+                            .opacity(Self.imageOpacity)
+                    }
+                    .clipped()
                     .accessibilityHidden(true)
                     .transition(.opacity)
                 SlateColors.ground
                     .opacity(Self.scrimOpacity)
-                    .ignoresSafeArea()
                     .accessibilityHidden(true)
             }
         }
         .ignoresSafeArea()
-        .clipped()
         .animation(reduceMotion ? nil : SlateMotion.standard, value: image.map(ObjectIdentifier.init))
         .accessibilityHidden(true)
     }

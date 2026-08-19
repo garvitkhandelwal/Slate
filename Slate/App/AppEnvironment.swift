@@ -10,6 +10,8 @@ struct AppEnvironment {
     let haptics: any HapticClient
     let dateProvider: any DateProviding
     let calendarService: CalendarService
+    /// Small preferences: appearance override and the showing wallpaper slot (UI-test launches get an isolated suite).
+    let defaults: UserDefaults
 }
 
 extension AppEnvironment {
@@ -18,12 +20,14 @@ extension AppEnvironment {
         let dateProvider = SystemDateProvider()
         let container = try Self.container()
         let repository = SwiftDataPlannerRepository(container: container)
-        let retention = RetentionService(repository: repository, calendarService: calendar, defaults: Self.defaults())
+        let defaults = Self.defaults()
+        let retention = RetentionService(repository: repository, calendarService: calendar, defaults: defaults)
         let wallpaperDirectory = try Self.wallpaperDirectory()
         #if DEBUG
         if UITestBootstrap.isEnabled {
             try UITestBootstrap.seed(repository: repository, calendarService: calendar, now: dateProvider.now())
-            try UITestBootstrap.seedWallpaper(in: wallpaperDirectory)
+            try UITestBootstrap.seedWallpaper(in: wallpaperDirectory, defaults: defaults)
+            UITestBootstrap.seedPreferences(into: defaults)
         }
         #endif
         return AppEnvironment(
@@ -32,7 +36,8 @@ extension AppEnvironment {
             retentionService: retention,
             haptics: SystemHapticClient(),
             dateProvider: dateProvider,
-            calendarService: calendar
+            calendarService: calendar,
+            defaults: defaults
         )
     }
 

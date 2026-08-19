@@ -355,9 +355,29 @@ final class PlannerViewModelTests: XCTestCase {
         XCTAssertNil(harness.model.wallpaperImage)
         await harness.model.importWallpaper(data: try ImageFixtures.png(width: 8, height: 8))
         let calls = await harness.wallpaperStore.calls
-        XCTAssertEqual(calls, [.load, .save, .load], "The visible image is decoded from the persisted copy after saving")
+        XCTAssertEqual(calls, [.load, .save(0), .load], "The visible image is decoded from the persisted copy after saving")
         XCTAssertNotNil(harness.model.wallpaperImage)
+        XCTAssertEqual(harness.model.selectedWallpaperIndex, 0)
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "1/1")
         XCTAssertNil(harness.model.presentedError)
+    }
+
+    func testImportFillsNextFreeSlotThenReplacesShowingWhenFull() async throws {
+        let harness = PlannerHarness()
+        await harness.model.start()
+        for _ in 0..<3 {
+            await harness.model.importWallpaper(data: try ImageFixtures.png(width: 8, height: 8))
+        }
+        XCTAssertEqual(harness.model.wallpapers.count, 3)
+        XCTAssertEqual(harness.model.selectedWallpaperIndex, 2, "Each import shows the new photo")
+        harness.model.cycleWallpaper() // → none
+        harness.model.cycleWallpaper() // → 1/3
+        XCTAssertEqual(harness.model.selectedWallpaperIndex, 0)
+        await harness.model.importWallpaper(data: try ImageFixtures.png(width: 16, height: 16, pattern: .white))
+        let calls = await harness.wallpaperStore.calls
+        XCTAssertEqual(calls.last(where: { if case .save = $0 { return true } else { return false } }), .save(0), "Full slots replace the showing wallpaper")
+        XCTAssertEqual(harness.model.wallpapers.count, 3)
+        XCTAssertEqual(harness.model.selectedWallpaperIndex, 0)
     }
 
     func testFailedImportPreservesPriorImageAndRaisesImportError() async throws {
@@ -377,9 +397,27 @@ final class PlannerViewModelTests: XCTestCase {
         XCTAssertNotNil(harness.model.wallpaperImage)
         await harness.model.removeWallpaper()
         XCTAssertNil(harness.model.wallpaperImage)
+        XCTAssertNil(harness.model.selectedWallpaperIndex)
         let stored = await harness.wallpaperStore.stored
-        XCTAssertNil(stored)
+        XCTAssertTrue(stored.isEmpty)
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "Photo")
         XCTAssertNil(harness.model.presentedError)
+    }
+
+    func testRemovalOfMiddleWallpaperCompactsAndClearsSelection() async throws {
+        let harness = PlannerHarness(
+            wallpapers: [try ImageFixtures.png(width: 8, height: 8, pattern: .black),
+                         try ImageFixtures.png(width: 8, height: 8, pattern: .white),
+                         try ImageFixtures.png(width: 8, height: 8, pattern: .checkerboard)],
+            selectedWallpaperIndex: 1
+        )
+        await harness.model.start()
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "2/3")
+        await harness.model.removeWallpaper()
+        XCTAssertEqual(harness.model.wallpapers.count, 2)
+        XCTAssertNil(harness.model.selectedWallpaperIndex)
+        let calls = await harness.wallpaperStore.calls
+        XCTAssertEqual(calls, [.load, .remove(1), .load])
     }
 
     func testFailedRemovalPreservesStateAndRaisesStorageError() async throws {
@@ -397,9 +435,93 @@ final class PlannerViewModelTests: XCTestCase {
         XCTAssertNil(harness.model.wallpaperImage)
         XCTAssertNil(harness.model.presentedError, "Corrupt wallpaper never alerts")
         let calls = await harness.wallpaperStore.calls
-        XCTAssertEqual(calls, [.load, .remove])
+        XCTAssertEqual(calls, [.load, .remove(0)])
         let stored = await harness.wallpaperStore.stored
-        XCTAssertNil(stored)
+        XCTAssertTrue(stored.isEmpty)
+        XCTAssertNil(harness.model.selectedWallpaperIndex, "A selection pointing at a removed slot is cleared")
+    }
+
+    // MARK: Wallpaper switch
+
+    func testCycleWithNothingStoredOpensThePicker() async {
+        let harness = PlannerHarness()
+        await harness.model.start()
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "Photo")
+        harness.model.cycleWallpaper()
+        XCTAssertTrue(harness.model.isPhotoPickerPresented)
+        XCTAssertNil(harness.model.selectedWallpaperIndex)
+    }
+
+    func testCycleStepsThroughStoredWallpapersThenNoneAndPersists() async throws {
+        let harness = PlannerHarness(wallpapers: [try ImageFixtures.png(width: 8, height: 8), try ImageFixtures.png(width: 8, height: 8, pattern: .white)])
+        await harness.model.start()
+        XCTAssertNil(harness.model.wallpaperImage)
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "Photo")
+        harness.model.cycleWallpaper()
+        XCTAssertEqual(harness.model.selectedWallpaperIndex, 0)
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "1/2")
+        XCTAssertNotNil(harness.model.wallpaperImage)
+        harness.model.cycleWallpaper()
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "2/2")
+        XCTAssertEqual(harness.defaults.integer(forKey: PlannerViewModel.selectedWallpaperKey), 1)
+        harness.model.cycleWallpaper()
+        XCTAssertNil(harness.model.selectedWallpaperIndex)
+        XCTAssertNil(harness.defaults.object(forKey: PlannerViewModel.selectedWallpaperKey))
+        XCTAssertFalse(harness.model.isPhotoPickerPresented, "Cycling never opens the picker while wallpapers exist")
+        harness.model.cycleWallpaper()
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "1/2")
+    }
+
+    func testSelectedWallpaperIndexIsRestoredFromDefaults() async throws {
+        let harness = PlannerHarness(wallpapers: [try ImageFixtures.png(width: 8, height: 8), try ImageFixtures.png(width: 8, height: 8, pattern: .white)], selectedWallpaperIndex: 1)
+        await harness.model.start()
+        XCTAssertEqual(harness.model.wallpaperSwitchLabel, "2/2")
+        XCTAssertNotNil(harness.model.wallpaperImage)
+    }
+
+    func testCycleCommitsAnActiveDraftFirst() async {
+        let harness = PlannerHarness()
+        await harness.model.start()
+        let day = harness.model.displayedWeek.days[0]
+        harness.model.beginAdding(on: day)
+        harness.model.updateDraft("Saved by switch")
+        harness.model.cycleWallpaper()
+        XCTAssertEqual(harness.model.tasks(on: day).map(\.text), ["Saved by switch"])
+        XCTAssertEqual(harness.model.capture, .none)
+    }
+
+    // MARK: Appearance switch
+
+    func testAppearanceStartsOnSystemAndToggleNamesTheTarget() {
+        let harness = PlannerHarness()
+        XCTAssertNil(harness.model.appearanceOverride)
+        XCTAssertEqual(harness.model.appearanceSwitchLabel(current: .light), "Dark")
+        XCTAssertEqual(harness.model.appearanceSwitchLabel(current: .dark), "Light")
+    }
+
+    func testToggleAppearanceFlipsFromEffectiveSchemeAndPersists() {
+        let harness = PlannerHarness()
+        harness.model.toggleAppearance(current: .light)
+        XCTAssertEqual(harness.model.appearanceOverride, .dark)
+        XCTAssertEqual(harness.defaults.string(forKey: PlannerViewModel.appearanceOverrideKey), "dark")
+        harness.model.toggleAppearance(current: .dark)
+        XCTAssertEqual(harness.model.appearanceOverride, .light)
+        XCTAssertEqual(harness.defaults.string(forKey: PlannerViewModel.appearanceOverrideKey), "light")
+    }
+
+    func testAppearanceOverrideIsRestoredFromDefaults() {
+        let harness = PlannerHarness()
+        harness.defaults.set("dark", forKey: PlannerViewModel.appearanceOverrideKey)
+        let restored = PlannerViewModel(environment: AppEnvironment(
+            repository: harness.repository,
+            wallpaperStore: harness.wallpaperStore,
+            retentionService: RetentionService(repository: harness.repository, calendarService: harness.calendarService, defaults: harness.defaults),
+            haptics: harness.haptics,
+            dateProvider: harness.dateProvider,
+            calendarService: harness.calendarService,
+            defaults: harness.defaults
+        ))
+        XCTAssertEqual(restored.appearanceOverride, .dark)
     }
 
     func testDeletingTaskBeingEditedEndsCapture() async {
