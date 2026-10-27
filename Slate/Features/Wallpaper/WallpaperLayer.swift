@@ -4,7 +4,7 @@ import SwiftUI
 /// mode background → image aspect-filled beyond safe bounds → grayscale → 10pt blur → 32% opacity →
 /// 50% mode-background scrim → planner content. A newly loaded image fades in only when Reduce Motion is off.
 struct WallpaperLayer: View {
-    let image: UIImage?
+    let image: WallpaperImage?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static let blurRadius: CGFloat = 10
@@ -39,10 +39,16 @@ struct WallpaperLayer: View {
     }
 
     /// A decorative image is never an accessibility element; the wallpaper is ground, not content.
+    #if canImport(UIKit)
     private func decorative(_ image: UIImage) -> Image {
         if let cgImage = image.cgImage {
             return Image(decorative: cgImage, scale: image.scale, orientation: .up)
         }
         return Image(uiImage: image)
     }
+    #else
+    private func decorative(_ image: CGImage) -> Image {
+        Image(decorative: image, scale: 1, orientation: .up)
+    }
+    #endif
 }

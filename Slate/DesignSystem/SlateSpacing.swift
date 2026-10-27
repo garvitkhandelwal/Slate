@@ -3,6 +3,12 @@ import CoreGraphics
 enum SlateSpacing {
     /// Horizontal reading edge for all planner content.
     static let contentEdge: CGFloat = 20
+    /// The reading edge as a list row inset. AppKit's table view already pads every row by 8 points a side.
+    #if os(macOS)
+    static let listRowEdge: CGFloat = contentEdge - 8
+    #else
+    static let listRowEdge: CGFloat = contentEdge
+    #endif
     /// Vertical rhythm between task rows.
     static let row: CGFloat = 16
     /// Vertical rhythm between day sections.

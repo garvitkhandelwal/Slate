@@ -18,6 +18,18 @@
         }
       }
     },
+    "back" : {
+      "comment" : "VoiceOver label of the macOS control that returns from a day to the week.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to week"
+          }
+        }
+      }
+    },
     "choose_photo" : {
       "comment" : "Dialog action that opens the system photo picker.",
       "extractionState" : "manual",
@@ -234,6 +246,30 @@
         }
       }
     },
+    "open_window" : {
+      "comment" : "macOS menu bar panel control that opens Slate in its own window; shown uppercase.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
+    "open_window_hint" : {
+      "comment" : "VoiceOver hint for the macOS open-window control.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Slate in its own window"
+          }
+        }
+      }
+    },
     "photo" : {
       "comment" : "Wallpaper switch label when no wallpaper is showing; rendered uppercase.",
       "extractionState" : "manual",
@@ -242,6 +278,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Photo"
+          }
+        }
+      }
+    },
+    "quit" : {
+      "comment" : "macOS menu bar panel control that quits the app; shown uppercase.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit"
+          }
+        }
+      }
+    },
+    "quit_slate" : {
+      "comment" : "VoiceOver label of the macOS quit control.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Slate"
           }
         }
       }

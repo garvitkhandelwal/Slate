@@ -27,8 +27,13 @@ struct DayView: View {
             WallpaperLayer(image: model.wallpaperImage)
             list
         }
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
+        #else
+        .toolbar(.hidden, for: .windowToolbar)
+        .navigationBarBackButtonHidden()
+        #endif
         .accessibilityIdentifier("day-root")
         .onChange(of: model.capture.target) { _, target in
             syncFocus(to: target)
@@ -47,7 +52,11 @@ struct DayView: View {
     private var list: some View {
         List {
             // The quick switches sit at the trailing end of the top row, under the native back control.
+            // macOS has no navigation bar in the menu bar panel, so the row carries its own back control.
             HStack(spacing: 0) {
+                #if os(macOS)
+                BackControl(action: goBack)
+                #endif
                 EmptyGround(onTap: endCapture)
                 QuickSwitchControls(model: model)
             }
@@ -108,7 +117,9 @@ struct DayView: View {
                 .listRowBackground(Color.clear)
         }
         .listStyle(.plain)
+        #if os(iOS)
         .listRowSpacing(0)
+        #endif
         .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
@@ -146,6 +157,13 @@ struct DayView: View {
             isSubmitting = false
         }
     }
+
+    #if os(macOS)
+    private func goBack() {
+        model.dismissCapture(committing: true)
+        if !model.route.isEmpty { model.route.removeLast() }
+    }
+    #endif
 
     private func endCapture() {
         if focus != nil {

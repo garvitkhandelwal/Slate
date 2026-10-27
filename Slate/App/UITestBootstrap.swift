@@ -1,7 +1,12 @@
 #if DEBUG
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
 import UIKit
+#else
+import ImageIO
+import UniformTypeIdentifiers
+#endif
 
 /// DEBUG-only launch-argument switches for UI tests: an isolated store, optional reset, and named seeds.
 /// Release builds compile none of this and always use the production store.
@@ -43,12 +48,24 @@ enum UITestBootstrap {
     static func seedWallpaper(in baseDirectory: URL, defaults: UserDefaults) throws {
         guard seedsWallpaper else { return }
         let size = CGSize(width: 900, height: 1600)
+        #if canImport(UIKit)
         let rendered = UIGraphicsImageRenderer(size: size).pngData { context in
             let colors = [UIColor(white: 0.95, alpha: 1).cgColor, UIColor(white: 0.15, alpha: 1).cgColor]
             let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1])!
             context.cgContext.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
         }
-        let processed = try WallpaperImageProcessor.processSynchronously(rendered)
+        #else
+        let context = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0,
+                                space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        let colors = [CGColor(gray: 0.95, alpha: 1), CGColor(gray: 0.15, alpha: 1)]
+        let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1])!
+        context.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+        let rendered = NSMutableData()
+        let destination = CGImageDestinationCreateWithData(rendered, UTType.png.identifier as CFString, 1, nil)!
+        CGImageDestinationAddImage(destination, context.makeImage()!, nil)
+        CGImageDestinationFinalize(destination)
+        #endif
+        let processed = try WallpaperImageProcessor.processSynchronously(rendered as Data)
         let fileURL = baseDirectory.appending(path: DiskWallpaperStore.relativePath(slot: 0))
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         try processed.write(to: fileURL, options: .atomic)

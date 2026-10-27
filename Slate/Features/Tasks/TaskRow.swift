@@ -35,6 +35,17 @@ struct TaskRow: View {
                 }
                 .tint(SlateColors.ink)
             }
+            #if os(macOS)
+            // Pointer users expect the row's actions on a secondary click as well as the trackpad swipe.
+            .contextMenu {
+                Button(AccessibilityLabels.toggleActionName(isCompleted: task.isCompleted), action: onToggle)
+                if mode == .day, let onEdit {
+                    Button(AccessibilityLabels.edit, action: onEdit)
+                }
+                Divider()
+                Button(AccessibilityLabels.delete, role: .destructive, action: onDelete)
+            }
+            #endif
             .modifier(RowAccessibility(task: task, mode: mode, isEditing: isEditing, onToggle: onToggle, onDelete: onDelete, onEdit: onEdit))
     }
 

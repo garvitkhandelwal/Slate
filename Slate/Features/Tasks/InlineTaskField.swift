@@ -14,7 +14,9 @@ struct InlineTaskField: View {
             .font(SlateTypography.body)
             .foregroundStyle(SlateColors.ink)
             .textFieldStyle(.plain)
+            #if os(iOS)
             .textInputAutocapitalization(.sentences)
+            #endif
             .submitLabel(.done)
             .focused(focus, equals: target)
             .frame(maxWidth: .infinity, minHeight: SlateSpacing.minimumTarget, alignment: .leading)
