@@ -30,6 +30,14 @@ enum AccessibilityLabels {
     static var switchToDark: String { String(localized: "switch_to_dark", defaultValue: "Switch to dark appearance") }
     static var wallpaperSwitchHint: String { String(localized: "wallpaper_switch_hint", defaultValue: "Shows the next wallpaper") }
 
+    // MARK: macOS
+
+    static var back: String { String(localized: "back", defaultValue: "Back to week") }
+    static var openWindow: String { String(localized: "open_window", defaultValue: "Window") }
+    static var openWindowHint: String { String(localized: "open_window_hint", defaultValue: "Opens Slate in its own window") }
+    static var quit: String { String(localized: "quit", defaultValue: "Quit") }
+    static var quitSlate: String { String(localized: "quit_slate", defaultValue: "Quit Slate") }
+
     static func wallpaperPosition(index: Int, count: Int) -> String {
         String(localized: "wallpaper_position", defaultValue: "Wallpaper \(index) of \(count)")
     }

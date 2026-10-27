@@ -2,7 +2,6 @@ import Foundation
 import Observation
 import PhotosUI
 import SwiftUI
-import UIKit
 
 /// The single owner of mutable UI state shared by the weekly and daily surfaces.
 /// Every mutation routes through the repository; state changes only after persistence succeeds.
@@ -19,7 +18,7 @@ final class PlannerViewModel {
     var isWallpaperDialogPresented = false
     var isPhotoPickerPresented = false
     /// Decoded stored wallpapers in slot order (at most `WallpaperSlots.count`).
-    private(set) var wallpapers: [UIImage] = []
+    private(set) var wallpapers: [WallpaperImage] = []
     /// Which stored wallpaper is showing; `nil` shows the flat ground.
     private(set) var selectedWallpaperIndex: Int?
     /// Persisted in-app appearance; `nil` follows the system.
@@ -43,7 +42,7 @@ final class PlannerViewModel {
     }
 
     /// The wallpaper currently rendered behind week and day content.
-    var wallpaperImage: UIImage? {
+    var wallpaperImage: WallpaperImage? {
         guard let index = selectedWallpaperIndex, wallpapers.indices.contains(index) else { return nil }
         return wallpapers[index]
     }
@@ -293,7 +292,7 @@ final class PlannerViewModel {
     /// Decodes every stored wallpaper off the main actor. A corrupt or unreadable slot falls back to no
     /// wallpaper for that slot and is removed silently; the showing index is clamped to what remains.
     private func loadWallpapers() async {
-        var decoded: [UIImage] = []
+        var decoded: [WallpaperImage] = []
         do {
             let stored = try await environment.wallpaperStore.loadAll()
             var corruptSlots: [Int] = []

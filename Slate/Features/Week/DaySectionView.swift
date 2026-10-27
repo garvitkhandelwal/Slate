@@ -97,6 +97,14 @@ struct EmptyGround: View {
             .contentShape(Rectangle())
             .onTapGesture { onTap?() }
             .onLongPressGesture(minimumDuration: 0.5) { onLongPress?() }
+            #if os(macOS)
+            // A secondary click is the discoverable pointer equivalent of the long press.
+            .contextMenu {
+                if let onLongPress {
+                    Button(AccessibilityLabels.wallpaperOptions, action: onLongPress)
+                }
+            }
+            #endif
             .accessibilityHidden(true)
     }
 }
@@ -106,6 +114,6 @@ extension View {
     func slateRow() -> some View {
         listRowSeparator(.hidden)
             .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: SlateSpacing.contentEdge, bottom: 0, trailing: SlateSpacing.contentEdge))
+            .listRowInsets(EdgeInsets(top: 0, leading: SlateSpacing.listRowEdge, bottom: 0, trailing: SlateSpacing.listRowEdge))
     }
 }

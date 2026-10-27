@@ -34,7 +34,11 @@ struct WeekView: View {
         }
         .wallpaperActionDialog(model: model)
         .navigationTitle(AccessibilityLabels.week)
+        #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
+        #else
+        .toolbar(.hidden, for: .windowToolbar)
+        #endif
         .onChange(of: model.capture.target) { _, target in
             syncFocus(to: target)
         }
@@ -126,7 +130,9 @@ struct WeekView: View {
                 .weekSwipe(isEnabled: isWeekSwipeEnabled, onDecision: handleSwipe)
         }
         .listStyle(.plain)
+        #if os(iOS)
         .listRowSpacing(0)
+        #endif
         .environment(\.defaultMinListRowHeight, SlateSpacing.minimumTarget)
         .scrollContentBackground(.hidden)
         .scrollDismissesKeyboard(.interactively)
