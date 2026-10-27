@@ -27,6 +27,7 @@
 		5A1A7E000000000000000020 /* Slate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Slate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A1A7E000000000000000021 /* SlateTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SlateTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A1A7E000000000000000022 /* SlateUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SlateUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A1A7E000000000000000023 /* Slate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Slate.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -37,6 +38,21 @@
 			);
 			target = 5A1A7E000000000000000030 /* Slate */;
 		};
+		5A1A7E000000000000000071 /* Exceptions for "Slate" folder in "SlateMac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/SlateApp.swift,
+				Resources/Info.plist,
+			);
+			target = 5A1A7E000000000000000033 /* SlateMac */;
+		};
+		5A1A7E000000000000000072 /* Exceptions for "SlateMac" folder in "SlateMac" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/Info.plist,
+			);
+			target = 5A1A7E000000000000000033 /* SlateMac */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -44,8 +60,17 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				5A1A7E000000000000000070 /* Exceptions for "Slate" folder in "Slate" target */,
+				5A1A7E000000000000000071 /* Exceptions for "Slate" folder in "SlateMac" target */,
 			);
 			path = Slate;
+			sourceTree = "<group>";
+		};
+		5A1A7E000000000000000013 /* SlateMac */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5A1A7E000000000000000072 /* Exceptions for "SlateMac" folder in "SlateMac" target */,
+			);
+			path = SlateMac;
 			sourceTree = "<group>";
 		};
 		5A1A7E000000000000000011 /* SlateTests */ = {
@@ -82,6 +107,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5A1A7E00000000000000004A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -89,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				5A1A7E000000000000000010 /* Slate */,
+				5A1A7E000000000000000013 /* SlateMac */,
 				5A1A7E000000000000000011 /* SlateTests */,
 				5A1A7E000000000000000012 /* SlateUITests */,
 				5A1A7E000000000000000003 /* Products */,
@@ -101,6 +134,7 @@
 				5A1A7E000000000000000020 /* Slate.app */,
 				5A1A7E000000000000000021 /* SlateTests.xctest */,
 				5A1A7E000000000000000022 /* SlateUITests.xctest */,
+				5A1A7E000000000000000023 /* Slate.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -177,6 +211,30 @@
 			productReference = 5A1A7E000000000000000022 /* SlateUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		5A1A7E000000000000000033 /* SlateMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5A1A7E00000000000000005E /* Build configuration list for PBXNativeTarget "SlateMac" */;
+			buildPhases = (
+				5A1A7E000000000000000081 /* Verify Release Constraints */,
+				5A1A7E000000000000000049 /* Sources */,
+				5A1A7E00000000000000004A /* Frameworks */,
+				5A1A7E00000000000000004B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5A1A7E000000000000000010 /* Slate */,
+				5A1A7E000000000000000013 /* SlateMac */,
+			);
+			name = SlateMac;
+			packageProductDependencies = (
+			);
+			productName = SlateMac;
+			productReference = 5A1A7E000000000000000023 /* Slate.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -198,6 +256,9 @@
 						CreatedOnToolsVersion = 26.0;
 						TestTargetID = 5A1A7E000000000000000030;
 					};
+					5A1A7E000000000000000033 = {
+						CreatedOnToolsVersion = 26.0;
+					};
 				};
 			};
 			buildConfigurationList = 5A1A7E000000000000000050 /* Build configuration list for PBXProject "Slate" */;
@@ -217,6 +278,7 @@
 				5A1A7E000000000000000030 /* Slate */,
 				5A1A7E000000000000000031 /* SlateTests */,
 				5A1A7E000000000000000032 /* SlateUITests */,
+				5A1A7E000000000000000033 /* SlateMac */,
 			);
 		};
 /* End PBXProject section */
@@ -237,6 +299,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5A1A7E000000000000000048 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A1A7E00000000000000004B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -266,6 +335,26 @@
 			shellPath = /bin/zsh;
 			shellScript = "# Archive/install builds only. The scheme's Archive pre-action runs Scripts/verify-release-constraints.sh\n# unsandboxed and writes this stamp only on success; this sandboxed phase reads nothing else and fails the\n# archive when the audit did not run or did not pass.\nstamp=\"${SRCROOT}/build/release-constraints.stamp\"\nif [ ! -f \"$stamp\" ]; then\n  echo \"error: release constraints audit did not run; archive through the Slate scheme or run Scripts/verify-release-constraints.sh\"\n  exit 1\nfi\nage=$(( $(date +%s) - $(stat -f %m \"$stamp\") ))\nif [ \"$age\" -gt 900 ]; then\n  echo \"error: release constraints stamp is stale; rerun the archive\"\n  exit 1\nfi\necho \"release constraints verified\"\n";
 		};
+		5A1A7E000000000000000081 /* Verify Release Constraints */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/build/release-constraints.stamp",
+			);
+			name = "Verify Release Constraints";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/zsh;
+			shellScript = "# Archive/install builds only. The scheme's Archive pre-action runs Scripts/verify-release-constraints.sh\n# unsandboxed and writes this stamp only on success; this sandboxed phase reads nothing else and fails the\n# archive when the audit did not run or did not pass.\nstamp=\"${SRCROOT}/build/release-constraints.stamp\"\nif [ ! -f \"$stamp\" ]; then\n  echo \"error: release constraints audit did not run; archive through the Slate or SlateMac scheme or run Scripts/verify-release-constraints.sh\"\n  exit 1\nfi\nage=$(( $(date +%s) - $(stat -f %m \"$stamp\") ))\nif [ \"$age\" -gt 900 ]; then\n  echo \"error: release constraints stamp is stale; rerun the archive\"\n  exit 1\nfi\necho \"release constraints verified\"\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -284,6 +373,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5A1A7E000000000000000046 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5A1A7E000000000000000049 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -574,6 +670,66 @@
 			};
 			name = Release;
 		};
+		5A1A7E00000000000000005C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = MacAppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SlateMac/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.garvit.Slate;
+				PRODUCT_NAME = Slate;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		5A1A7E00000000000000005D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = MacAppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SlateMac/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.garvit.Slate;
+				PRODUCT_NAME = Slate;
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -609,6 +765,15 @@
 			buildConfigurations = (
 				5A1A7E00000000000000005A /* Debug */,
 				5A1A7E00000000000000005B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5A1A7E00000000000000005E /* Build configuration list for PBXNativeTarget "SlateMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5A1A7E00000000000000005C /* Debug */,
+				5A1A7E00000000000000005D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
